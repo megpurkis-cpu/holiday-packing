@@ -1,0 +1,246 @@
+# Session Handoff: Holiday Packing App
+
+## Goal
+Build and deploy a fully featured family holiday packing web app for Meg, Andy and Eleanor — replacing a failed Home Assistant attempt — with cloud sync, a neon dark theme, quantity counters, multiple storage location trackers, and a "left to pack" view.
+
+---
+
+## Current Progress & State
+
+### What was done
+
+**Platform Decision**
+- Started by attempting to build in Home Assistant (HA) via YAML helpers and Lovelace dashboard. Abandoned after HA proved too inflexible for 160+ dynamic items across multiple categories. Switched to a standalone single-file HTML/CSS/JS PWA.
+
+**Hosting**
+- Initially deployed to Netlify — paused after AI agent credits were exhausted. Migrated to **GitHub Pages**.
+- Live URL: `https://megpurkis-cpu.github.io/holiday-packing/`
+- GitHub repo: `github.com/megpurkis-cpu/holiday-packing`
+- File must be named exactly `index.html` in the repository root.
+- To update: go to repo → click `index.html` → click pencil icon → paste new file contents → Commit changes.
+
+**Cloud Sync**
+- Implemented via **JSONBin.io**
+- Master Key: `$2a$10$j.laPOvt3LSDrWC0DSN3oePhIXm/ipg3mpgAlBUysmibY8/42sl76`
+- **Active Bin ID: `6a53f304da38895dfe53b246`** (created 12-07-2026 — this is the live bin with all current data)
+- Dead bins (do not use): `6a0bf20e6610dd3ae86ad534`, `6a0bf4746610dd3ae86ae178`, `6a0bf4236877513b27966274`, `6a0bf240ee5a733b12e19302`, `6a0bf2096877513b2796578a`
+- Bin ID hardcoded as fallback: `let BIN_ID=localStorage.getItem('hpk_bin_id')||'6a53f304da38895dfe53b246';`
+- API calls use `X-Master-Key` header (access keys cause 401 errors)
+- Save debounced 1200ms after any change via `scheduleSave()` → `pushBin()`
+
+**Security**
+- 4-digit PIN screen on app load: `1008`
+- PIN stored as `const CORRECT_PIN = '1008'` in JS
+- Unlocked state stored in `sessionStorage` key `hpk_unlocked` — persists for browser session, re-prompts on browser close
+- GitHub repo is public (required for free GitHub Pages) but JSONBin bin is private
+
+**App Architecture**
+- Single HTML file with embedded CSS and JS
+- Google Fonts: Orbitron (headings, numbers) + Exo 2 (body)
+- All state in one `state` object, pushed to JSONBin on every change:
+  ```
+  state = {
+    days: 7,                           // holiday duration (slider)
+    view: 'pack'|'todo'|'caravan'|'mags'|'setup',
+    items: [...],                      // all packing items
+    checked: { itemId: true },         // checklist ticks (Pre-departure & Drain Down only)
+    counts: { itemId: number },        // packed counter per item
+    atCaravan: { itemId: true },       // binary toggle (Manage Items PACK/VAN toggle)
+    caravanCounts: { itemId: number }, // how many at caravan
+    magsCount: { itemId: number },     // how many at Mags (Meg's Mum's)
+    ntCounts: { itemId: number },      // "not this trip" counter
+    collapsed: { sectionId: true },
+    perWeekMigrated: true              // migration flag — perDay values now store perWeek
+  }
+  ```
+
+**Quantity Formula**
+- Items store `perDay` field name internally but it now holds **per-week** quantity
+- Formula: `qty(item) = Math.round(item.min + (item.perDay * state.days / 7))`
+- `neededToPack(item) = Math.max(0, qty - caravanCount - magsCount - ntCount)`
+- One-time migration runs on first load if `!state.perWeekMigrated` — multiplies all perDay values by 7 and saves
+
+**Sections (13 total)**
+| ID | Label | Type |
+|----|-------|------|
+| checks | Pre-departure checks | check |
+| meg | Meg | pack |
+| andy | Andy | pack |
+| eleanor | Eleanor | pack |
+| caravan | Caravan | pack |
+| camping | Camping | pack |
+| household | Household | pack |
+| health | Health | pack |
+| bedding | Bedding | pack |
+| food | Food | pack |
+| media | Media & Tech | pack |
+| leftcaravan | Left at Caravan | pack |
+| draindown | Drain Down Checklist | check |
+
+**Key Functions**
+| Function | Purpose |
+|----------|---------|
+| `qty(item)` | Total needed based on slider |
+| `caravanCount(item)` | Items at caravan (`caravanCounts[id] \|\| 0`) |
+| `magsCount(item)` | Items at Mags (`magsCount[id] \|\| 0`) |
+| `ntCount(item)` | Not this trip (`ntCounts[id] \|\| 0`) |
+| `neededToPack(item)` | `Math.max(0, qty - caravanCount - magsCount - ntCount)` |
+| `packedCount(item)` | How many packed (`counts[id] \|\| 0`) |
+| `isComplete(item)` | true if neededToPack <= 0 OR packed >= neededToPack, or check item ticked |
+| `adjustCaravanCount(id, delta)` | +/- caravan qty |
+| `adjustMagsCount(id, delta)` | +/- Mags qty |
+| `adjustNTCount(id, delta)` | +/- not this trip qty |
+| `adjustCount(id, delta)` | +/- packed count, capped at neededToPack |
+| `buildTodo()` | Builds Left to Pack view |
+| `buildMagsView()` | Builds At Mags view |
+| `resetAll()` | Clears `checked`, `counts`, `ntCounts` — preserves `caravanCounts`, `magsCount`, `atCaravan` |
+
+**Five-Tab Navigation**
+| Tab | View | Purpose |
+|-----|------|---------|
+| Pack checklist | `pack` | Full item cards with all counters |
+| Left to Pack | `todo` | Flat list of items still needing packing, grouped by section |
+| At Caravan | `caravan` | Items with caravanCount > 0 |
+| At Mags | `mags` | Items with magsCount > 0 (purple theme) |
+| Manage items | `setup` | Add/edit/delete items, PACK/VAN toggle |
+
+**Item Card Layout (Pack Checklist)**
+```
+Row 1: [Item Name ✓]                          [Total: N (formula)]
+Row 2: [Location text]
+Row 3: [🚫 Not this trip  − N +]              (amber, resets on New Holiday)
+Row 4: [🏕 At Caravan − N +] | [🏠 At Mags − N +]
+Row 5: [📦 To Pack: N]       | [✓ Packed − N +]
+```
+- All three storage counters reduce To Pack
+- At Caravan and At Mags persist between holidays
+- Not This Trip resets with New Holiday
+- Card turns green ✓ when To Pack = 0
+- Section header turns green ✓ when all items in section complete
+
+**Left to Pack Tab**
+- Shows only items where `neededToPack - packedCount > 0`
+- Grouped by section, only shows sections with remaining items
+- Has packed +/- counter directly on each item — updates main list in real time
+- Shows 🎉 "All packed!" when everything is done
+
+**At Mags Tab**
+- Shows all items where magsCount > 0
+- Purple colour scheme to distinguish from At Caravan (blue)
+- Adjustable counters — toggle items to/from Mags as they move
+
+**Visual Theme**
+- Dark navy background `#0a0a1a`
+- Cyan `#00ffff` — primary accent (pack items)
+- Green `#00ffc8` — complete/packed states
+- Amber `#ffaa00` — Not This Trip
+- Blue `#00c8ff` — At Caravan
+- Purple `#cc66ff` — At Mags
+- Fonts: Orbitron + Exo 2 (Google Fonts)
+- Text sizes: item names 17px, counter values 15px, buttons 40×38px
+
+**Reset Behaviour**
+| Field | Resets on New Holiday? |
+|-------|----------------------|
+| `checked` | ✅ Yes |
+| `counts` (packed) | ✅ Yes |
+| `ntCounts` (not this trip) | ✅ Yes |
+| `caravanCounts` | ❌ No — persists |
+| `magsCount` | ❌ No — persists |
+| `atCaravan` (binary toggle) | ❌ No — persists |
+
+**Known Bugs Fixed**
+- `saveTimer` declared twice → SyntaxError — removed duplicate
+- JSONBin 401 → was using access key, not master key
+- Devices not syncing → each device created own bin → fixed by hardcoding active bin ID
+- Multiple dead bins created → active bin confirmed as `6a53f304da38895dfe53b246`
+- Netlify AI agent intercepting uploads → use "browse files to upload"
+- GitHub Pages 404 → file not named `index.html`
+- isComplete not triggering for all-at-caravan items → changed `===0` to `<=0`
+- Binary N/A toggle replaced with "Not this trip" counter (handles partial quantities)
+- Per-day quantities converted to per-week with auto-migration on first load
+
+### What was tried and failed
+- **Home Assistant YAML** — too inflexible. Abandoned.
+- **Netlify free tier** — paused after AI agent credits exhausted.
+- **JSONBin access key** — returns 401. Master key required.
+- **Binary N/A toggle** — replaced with Not This Trip counter.
+
+---
+
+## Files & Resources Touched
+
+| Path | Description |
+|------|-------------|
+| `/mnt/user-data/outputs/holiday-packing.html` | Complete app — latest version, ready to upload |
+| `/mnt/user-data/outputs/HANDOFF_HolidayPackingApp_2026-07-26.md` | This handoff document |
+| `github.com/megpurkis-cpu/holiday-packing` | GitHub repo |
+| `https://megpurkis-cpu.github.io/holiday-packing/` | Live app URL |
+| `https://api.jsonbin.io/v3/b/6a53f304da38895dfe53b246` | Active JSONBin bin |
+
+---
+
+## Immediate Next Steps
+
+- **Upload latest file to GitHub** — download `holiday-packing.html`, go to repo, click `index.html`, pencil edit, select all, paste, Commit changes.
+- **Delete old dead bins** — go to `jsonbin.io/app/bins`, delete all except `6a53f304da38895dfe53b246`.
+- **Test Mags workflow** — mark some bedding items as At Mags, confirm To Pack reduces, check At Mags tab shows them. On next holiday, reduce Mags count as items come back.
+- **Test Left to Pack** — mid-packing, switch to Left to Pack tab, confirm only remaining items show, tap Packed counter, confirm main list updates.
+
+---
+
+## When to Update This Handoff
+
+**Always update when:**
+- Active JSONBin Bin ID changes
+- Master Key is regenerated
+- PIN is changed
+- GitHub repo or live URL changes
+- A new section or tab is added or removed
+- A major feature is added, changed, or removed
+- A significant bug is fixed that took effort to track down
+
+**Not necessary to update for:**
+- Minor cosmetic tweaks (font sizes, colours, spacing)
+- Small text/label changes
+- Adding individual items via the app UI (those sync to JSONBin automatically)
+
+---
+
+## Key Credentials (keep safe)
+
+| Item | Value |
+|------|-------|
+| JSONBin Master Key | `$2a$10$j.laPOvt3LSDrWC0DSN3oePhIXm/ipg3mpgAlBUysmibY8/42sl76` |
+| JSONBin Active Bin ID | `6a53f304da38895dfe53b246` |
+| GitHub repo | `github.com/megpurkis-cpu/holiday-packing` |
+| Live URL | `https://megpurkis-cpu.github.io/holiday-packing/` |
+| App PIN | `1008` |
+| PIN session key | `hpk_unlocked` (sessionStorage) |
+| localStorage bin key | `hpk_bin_id` |
+
+---
+
+## Update — Search & Category Move (2026-08-26)
+
+### What was added
+
+**Search bar on every tab**
+- Appears at top of Pack checklist, Left to Pack, At Caravan, At Mags, and Manage Items
+- Filters by item name or location (case insensitive) in real time
+- ✕ clear button appears when search is active
+- Shows "No items matching..." message when nothing found
+- Search clears automatically when switching tabs
+- Implemented as ephemeral JS variable `searchTerm=''` — not saved to state or JSONBin
+- Key functions:
+  - `searchBar(placeholder)` — renders the search input HTML
+  - `setSearch(v)` — updates searchTerm, re-renders, re-focuses input
+  - `matchSearch(item)` — returns true if item name or location includes searchTerm
+
+**Category dropdown in Manage Items**
+- Appears at the top of the edit panel when ✎ Edit is tapped on any item
+- Lists all 13 sections as `<option>` elements, current section pre-selected
+- On Save, `item.section` is updated — item moves to new section immediately
+- No need to delete and re-add items to change their category
+- Field ID: `e-sec`, handled in `saveEdit()` via `if(s)item.section=s.value`
+- CSS class: `section-move-select`
