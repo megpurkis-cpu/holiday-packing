@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Holiday Packing">
+<title>Holiday Packing</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Exo+2:wght@300;400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Exo 2',sans-serif;background:#0a0a1a;color:#e0f7ff;min-height:100vh;background-image:radial-gradient(ellipse at 20% 50%, rgba(0,255,255,0.03) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(120,0,255,0.04) 0%, transparent 60%)}
+
+/* HEADER */
+.header{background:rgba(10,15,35,0.95);border-bottom:1px solid rgba(0,255,255,0.3);padding:12px 16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);box-shadow:0 0 20px rgba(0,255,255,0.1)}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.header-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:#00ffff;text-shadow:0 0 10px rgba(0,255,255,0.8),0 0 20px rgba(0,255,255,0.4);letter-spacing:2px}
+.sync-status{display:flex;align-items:center;gap:5px;font-size:11px;color:#00ffff99}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#333;flex-shrink:0;transition:all 0.3s}
+.sync-dot.syncing{background:#f59e0b;box-shadow:0 0 8px #f59e0b}
+.sync-dot.synced{background:#00ffff;box-shadow:0 0 8px rgba(0,255,255,0.8)}
+.sync-dot.error{background:#ff4466;box-shadow:0 0 8px #ff4466}
+
+/* SLIDER */
+.dur-row{display:flex;align-items:center;gap:10px}
+.dur-row label{font-size:12px;color:#00ffff99;white-space:nowrap;letter-spacing:1px;text-transform:uppercase}
+.dur-row input[type=range]{flex:1;height:4px;accent-color:#00ffff;background:rgba(0,255,255,0.2);border-radius:2px}
+.days-val{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;color:#00ffff;text-shadow:0 0 10px rgba(0,255,255,0.8);min-width:28px;text-align:right}
+.days-unit{font-size:11px;color:#00ffff66;letter-spacing:1px}
+
+/* NAV */
+.nav{display:flex;gap:6px;padding:10px 16px;background:rgba(10,15,35,0.9);border-bottom:1px solid rgba(0,255,255,0.15);overflow-x:auto;backdrop-filter:blur(10px)}
+.nav-btn{font-family:'Exo 2',sans-serif;font-size:14px;padding:8px 16px;border-radius:20px;border:1px solid rgba(0,255,255,0.3);background:rgba(0,255,255,0.05);cursor:pointer;color:#00ffff99;white-space:nowrap;flex-shrink:0;letter-spacing:0.5px;transition:all 0.2s}
+.nav-btn:hover{border-color:rgba(0,255,255,0.6);background:rgba(0,255,255,0.1);color:#00ffff}
+.nav-btn.active{background:rgba(0,255,255,0.15);color:#00ffff;border-color:#00ffff;box-shadow:0 0 12px rgba(0,255,255,0.3),inset 0 0 12px rgba(0,255,255,0.05)}
+.reset-btn{font-family:'Exo 2',sans-serif;font-size:14px;padding:8px 16px;border-radius:20px;border:1px solid rgba(255,100,100,0.4);background:rgba(255,50,50,0.05);cursor:pointer;color:#ff6688;white-space:nowrap;flex-shrink:0;margin-left:auto;transition:all 0.2s}
+.reset-btn:hover{border-color:#ff4466;box-shadow:0 0 10px rgba(255,68,102,0.3)}
+
+/* CONTENT */
+.content{padding:12px 16px;max-width:700px;margin:0 auto}
+
+/* STATS */
+.stats-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.stat{background:rgba(0,255,255,0.05);border-radius:12px;padding:12px;text-align:center;border:1px solid rgba(0,255,255,0.2);box-shadow:0 0 15px rgba(0,255,255,0.05),inset 0 0 15px rgba(0,255,255,0.02)}
+.stat-val{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:#00ffff;text-shadow:0 0 10px rgba(0,255,255,0.7)}
+.stat-lbl{font-size:12px;color:#00ffff66;margin-top:3px;letter-spacing:1px;text-transform:uppercase}
+
+/* PROGRESS */
+.prog-bar{height:3px;background:rgba(0,255,255,0.1);border-radius:2px;overflow:hidden;margin-bottom:14px}
+.prog-fill{height:100%;background:linear-gradient(90deg,#00ffff,#00aaff);border-radius:2px;transition:width 0.4s;box-shadow:0 0 8px rgba(0,255,255,0.6)}
+
+/* SECTION CARDS */
+.section-card{background:rgba(10,20,40,0.8);border-radius:14px;margin-bottom:10px;overflow:hidden;border:1px solid rgba(0,255,255,0.2);box-shadow:0 0 20px rgba(0,255,255,0.05),inset 0 0 20px rgba(0,0,50,0.3);backdrop-filter:blur(5px);transition:border-color 0.2s}
+.section-card:hover{border-color:rgba(0,255,255,0.35)}
+.section-head{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:background 0.2s}
+.section-head:hover{background:rgba(0,255,255,0.04)}
+.section-head:active{background:rgba(0,255,255,0.08)}
+
+/* AVATARS */
+.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'Orbitron',monospace;border:1px solid currentColor}
+.av-checks{background:rgba(255,200,0,0.1);color:#ffc800;box-shadow:0 0 8px rgba(255,200,0,0.3)}
+.av-meg{background:rgba(255,0,180,0.1);color:#ff69b4;box-shadow:0 0 8px rgba(255,105,180,0.3)}
+.av-andy{background:rgba(0,100,255,0.1);color:#4da6ff;box-shadow:0 0 8px rgba(77,166,255,0.3)}
+.av-eleanor{background:rgba(0,255,150,0.1);color:#00ff96;box-shadow:0 0 8px rgba(0,255,150,0.3)}
+.av-caravan{background:rgba(255,150,0,0.1);color:#ffaa00;box-shadow:0 0 8px rgba(255,170,0,0.3)}
+.av-camping{background:rgba(0,255,100,0.1);color:#00e676;box-shadow:0 0 8px rgba(0,230,118,0.3)}
+.av-household{background:rgba(180,180,255,0.1);color:#b0b8ff;box-shadow:0 0 8px rgba(176,184,255,0.3)}
+.av-health{background:rgba(255,50,50,0.1);color:#ff6666;box-shadow:0 0 8px rgba(255,100,100,0.3)}
+.av-bedding{background:rgba(180,0,255,0.1);color:#cc66ff;box-shadow:0 0 8px rgba(200,100,255,0.3)}
+.av-food{background:rgba(0,220,120,0.1);color:#00dc78;box-shadow:0 0 8px rgba(0,220,120,0.3)}
+.av-media{background:rgba(100,50,255,0.1);color:#8855ff;box-shadow:0 0 8px rgba(136,85,255,0.3)}
+.av-leftcaravan{background:rgba(0,200,255,0.1);color:#00c8ff;box-shadow:0 0 8px rgba(0,200,255,0.3)}
+.av-draindown{background:rgba(0,255,200,0.1);color:#00ffc8;box-shadow:0 0 8px rgba(0,255,200,0.3)}
+
+.section-title{font-size:16px;font-weight:600;flex:1;color:#c0eeff;letter-spacing:0.5px}
+.progress-pill{font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(0,255,255,0.08);color:#00ffff88;border:1px solid rgba(0,255,255,0.15)}
+.chevron{color:#00ffff44;font-size:18px;flex-shrink:0;transition:transform 0.2s}
+.chevron.open{transform:rotate(180deg)}
+.item-list{border-top:1px solid rgba(0,255,255,0.1)}
+
+/* CHECK ROWS */
+.item-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid rgba(0,255,255,0.06)}
+.item-row:last-child{border-bottom:none}
+.item-row input[type=checkbox]{width:20px;height:20px;accent-color:#00ffff;cursor:pointer;flex-shrink:0}
+.item-info{flex:1;min-width:0}
+.item-name{font-size:16px;font-weight:500;color:#c0eeff}
+.item-name.done{text-decoration:line-through;color:#ffffff33}
+.item-meta{font-size:11px;color:#00ffff99;margin-top:2px}
+.check-badge{font-size:13px;padding:4px 12px;border-radius:20px;flex-shrink:0}
+.check-badge.todo{background:rgba(255,200,0,0.1);color:#ffc800;border:1px solid rgba(255,200,0,0.3)}
+.check-badge.done-badge{background:rgba(0,255,200,0.1);color:#00ffc8;border:1px solid rgba(0,255,200,0.3)}
+
+/* COUNTER ROWS */
+.counter-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(0,255,255,0.06);transition:background 0.2s}
+.counter-row:last-child{border-bottom:none}
+.counter-row.complete{background:rgba(0,255,200,0.04)}
+.counter-info{flex:1;min-width:0}
+.counter-name{font-size:14px;font-weight:500;color:#c0eeff}
+.counter-name.complete{color:#00ffc8;text-shadow:0 0 8px rgba(0,255,200,0.4)}
+.counter-meta{font-size:11px;color:#00ffff99;margin-top:2px}
+.counter-controls{display:flex;align-items:center;flex-shrink:0;border:1px solid rgba(0,255,255,0.25);border-radius:10px;overflow:hidden;box-shadow:0 0 8px rgba(0,255,255,0.1)}
+.counter-btn{width:36px;height:36px;border:none;background:rgba(0,20,40,0.8);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;transition:all 0.15s}
+.counter-btn.minus{color:#ff6688}
+.counter-btn.minus:active{background:rgba(255,68,102,0.2)}
+.counter-btn.plus{color:#00ffcc;background:rgba(0,255,200,0.05)}
+.counter-btn.plus:active{background:rgba(0,255,200,0.2)}
+.counter-val{font-family:'Orbitron',monospace;font-size:13px;font-weight:600;color:#00ffff;min-width:48px;text-align:center;padding:0 4px;border-left:1px solid rgba(0,255,255,0.2);border-right:1px solid rgba(0,255,255,0.2);height:36px;display:flex;align-items:center;justify-content:center;background:rgba(0,255,255,0.03)}
+.counter-val.complete{color:#00ffc8;text-shadow:0 0 8px rgba(0,255,200,0.6)}
+
+/* TOGGLE */
+.toggle-wrap{display:flex;align-items:center;flex-shrink:0}
+.toggle{position:relative;width:76px;height:28px;flex-shrink:0;cursor:pointer}
+.toggle-track{position:absolute;inset:0;border-radius:28px;transition:all 0.3s;display:flex;align-items:center;justify-content:space-between;padding:0 7px;font-size:9px;font-weight:700;letter-spacing:0.5px}
+.toggle-track.pack{background:rgba(0,255,200,0.15);color:#00ffc8;border:1px solid rgba(0,255,200,0.4);box-shadow:0 0 10px rgba(0,255,200,0.2)}
+.toggle-track.caravan{background:rgba(0,200,255,0.15);color:#00c8ff;border:1px solid rgba(0,200,255,0.4);box-shadow:0 0 10px rgba(0,200,255,0.2)}
+.toggle-knob{position:absolute;top:3px;width:22px;height:22px;border-radius:50%;background:#0a0a1a;transition:left 0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.5)}
+.toggle-knob.pack{left:3px;border:1px solid rgba(0,255,200,0.6);box-shadow:0 0 6px rgba(0,255,200,0.4)}
+.toggle-knob.caravan{left:51px;border:1px solid rgba(0,200,255,0.6);box-shadow:0 0 6px rgba(0,200,255,0.4)}
+
+/* AT CARAVAN NOTE */
+.at-caravan-count{font-size:11px;color:#00c8ff88;padding:6px 14px;border-top:1px solid rgba(0,200,255,0.1);font-style:italic}
+
+/* ADD/EDIT AREAS */
+.add-area{border-top:1px solid rgba(0,255,255,0.1);padding:12px 14px;background:rgba(0,10,25,0.5)}
+.add-field{width:100%;border:1px solid rgba(0,255,255,0.2);border-radius:10px;padding:9px 12px;font-size:14px;background:rgba(0,20,40,0.8);color:#c0eeff;margin-bottom:8px;outline:none;-webkit-appearance:none;font-family:'Exo 2',sans-serif;transition:border-color 0.2s}
+.add-field:focus{border-color:rgba(0,255,255,0.6);box-shadow:0 0 10px rgba(0,255,255,0.1)}
+.add-field::placeholder{color:#00ffff33}
+.add-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.add-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.add-btn{width:100%;background:rgba(0,255,255,0.1);color:#00ffff;border:1px solid rgba(0,255,255,0.4);border-radius:10px;padding:10px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Exo 2',sans-serif;letter-spacing:0.5px;transition:all 0.2s;box-shadow:0 0 10px rgba(0,255,255,0.05)}
+.add-btn:hover{background:rgba(0,255,255,0.15);box-shadow:0 0 15px rgba(0,255,255,0.2)}
+.add-btn:active{background:rgba(0,255,255,0.2)}
+.setup-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(0,255,255,0.06)}
+.setup-row:last-child{border-bottom:none}
+.setup-info{flex:1;min-width:0}
+.setup-name{font-size:14px;font-weight:500;color:#c0eeff}
+.setup-meta{font-size:11px;color:#00ffff99;margin-top:1px}
+.edit-btn{background:rgba(0,255,200,0.05);border:1px solid rgba(0,255,200,0.3);border-radius:8px;cursor:pointer;color:#00ffc8;padding:5px 8px;font-size:12px;flex-shrink:0;white-space:nowrap;transition:all 0.2s}
+.edit-btn:hover{box-shadow:0 0 8px rgba(0,255,200,0.3)}
+.del-btn{background:rgba(255,68,102,0.05);border:1px solid rgba(255,68,102,0.3);border-radius:8px;cursor:pointer;color:#ff4466;padding:5px 8px;font-size:13px;flex-shrink:0;transition:all 0.2s}
+.del-btn:hover{box-shadow:0 0 8px rgba(255,68,102,0.3)}
+.edit-panel{background:rgba(0,10,30,0.9);border-bottom:1px solid rgba(0,255,255,0.1);padding:12px 14px}
+.edit-actions{display:flex;gap:8px;margin-top:8px}
+.save-btn{flex:1;background:rgba(0,255,200,0.15);color:#00ffc8;border:1px solid rgba(0,255,200,0.4);border-radius:10px;padding:9px;font-size:14px;cursor:pointer;font-family:'Exo 2',sans-serif;box-shadow:0 0 10px rgba(0,255,200,0.1)}
+.save-btn:active{background:rgba(0,255,200,0.25)}
+.cancel-btn{flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:9px;font-size:14px;cursor:pointer;color:#ffffff66;font-family:'Exo 2',sans-serif}
+
+/* TOAST */
+.saved-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,255,200,0.15);color:#00ffc8;border:1px solid rgba(0,255,200,0.4);padding:8px 18px;border-radius:20px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999;box-shadow:0 0 20px rgba(0,255,200,0.2);font-family:'Exo 2',sans-serif;backdrop-filter:blur(10px)}
+.saved-toast.show{opacity:1}
+.loading{text-align:center;padding:40px;font-size:14px;color:#00ffff66;font-family:'Orbitron',monospace;letter-spacing:2px}
+
+/* TWO-ROW ITEM CARDS */
+.item-card{padding:10px 14px;border-bottom:1px solid rgba(0,255,255,0.06);transition:background 0.2s}
+.item-card:last-child{border-bottom:none}
+.item-card.complete{background:rgba(0,255,200,0.04)}
+.item-card-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.item-card-name{font-size:17px;font-weight:600;color:#c0eeff;flex:1;min-width:0}
+.item-card-name.complete{color:#00ffc8;text-shadow:0 0 8px rgba(0,255,200,0.4)}
+.item-card-total{font-size:13px;color:#00ffff66;flex-shrink:0;margin-left:8px}
+.item-card-total span{color:#00ffff99;font-weight:600}
+.item-card-loc{font-size:13px;color:#00ffff99;margin-bottom:8px}
+.item-card-row2{display:flex;align-items:center;gap:0;background:rgba(0,0,30,0.3);border-radius:10px;border:1px solid rgba(0,255,255,0.1);overflow:hidden;margin-top:6px}
+.item-card-col{flex:1;display:flex;flex-direction:column;align-items:center;padding:7px 4px;gap:5px}
+.item-card-divider{width:1px;background:rgba(0,255,255,0.1);align-self:stretch}
+.item-card-label{font-size:12px;color:#00ffff99;letter-spacing:0.5px;text-transform:uppercase;white-space:nowrap}
+.item-mini-controls{display:flex;align-items:center;gap:0;border:1px solid rgba(0,255,255,0.2);border-radius:8px;overflow:hidden}
+.mini-btn{width:40px;height:38px;border:none;background:rgba(0,20,40,0.8);cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:all 0.15s;flex-shrink:0}
+.mini-btn.minus{color:#ff6688}
+.mini-btn.minus:active{background:rgba(255,68,102,0.2)}
+.mini-btn.plus{color:#00ffcc;background:rgba(0,255,200,0.05)}
+.mini-btn.plus:active{background:rgba(0,255,200,0.2)}
+.mini-val{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:#00ffff;min-width:34px;text-align:center;padding:0 2px;border-left:1px solid rgba(0,255,255,0.15);border-right:1px solid rgba(0,255,255,0.15);height:38px;display:flex;align-items:center;justify-content:center;background:rgba(0,255,255,0.03)}
+.mini-val.complete{color:#00ffc8;text-shadow:0 0 8px rgba(0,255,200,0.6)}
+.item-to-pack{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:#00ffff;text-shadow:0 0 10px rgba(0,255,255,0.5);height:38px;display:flex;align-items:center;justify-content:center;min-width:40px}
+.item-to-pack.all-done{color:#00ffc8;text-shadow:0 0 10px rgba(0,255,200,0.6)}
+
+/* PIN SCREEN */
+.pin-screen{position:fixed;inset:0;background:#0a0a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.pin-title{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:#00ffff;text-shadow:0 0 15px rgba(0,255,255,0.8);letter-spacing:3px;margin-bottom:8px}
+.pin-subtitle{font-size:14px;color:#00ffff66;letter-spacing:1px;margin-bottom:40px}
+.pin-dots{display:flex;gap:16px;margin-bottom:40px}
+.pin-dot{width:18px;height:18px;border-radius:50%;border:2px solid rgba(0,255,255,0.4);background:transparent;transition:all 0.2s}
+.pin-dot.filled{background:#00ffff;border-color:#00ffff;box-shadow:0 0 10px rgba(0,255,255,0.8)}
+.pin-dot.error{background:#ff4466;border-color:#ff4466;box-shadow:0 0 10px rgba(255,68,102,0.8)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:280px;width:100%}
+.pin-btn{height:70px;border-radius:14px;border:1px solid rgba(0,255,255,0.25);background:rgba(0,255,255,0.05);cursor:pointer;font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:#00ffff;transition:all 0.15s;box-shadow:0 0 10px rgba(0,255,255,0.05);-webkit-tap-highlight-color:transparent}
+.pin-btn:active{background:rgba(0,255,255,0.2);box-shadow:0 0 20px rgba(0,255,255,0.3);transform:scale(0.96)}
+.pin-btn.del{font-size:16px;color:#ff6688;border-color:rgba(255,68,102,0.25);background:rgba(255,68,102,0.05)}
+.pin-btn.del:active{background:rgba(255,68,102,0.2)}
+.pin-btn.empty{border:none;background:none;cursor:default}
+.pin-error{font-size:13px;color:#ff4466;margin-top:16px;letter-spacing:1px;min-height:20px;text-align:center}
+
+/* N/A ITEMS */
+.item-card.na{background:rgba(255,170,0,0.04);border-left:2px solid rgba(255,170,0,0.3)}
+.item-card-name.na{color:#ffaa0099;text-decoration:line-through}
+.na-badge{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:#ffaa00;background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.3);border-radius:8px;padding:4px 12px;text-align:center;box-shadow:0 0 8px rgba(255,170,0,0.15)}
+.nt-row{background:rgba(255,140,0,0.05);border-top:1px solid rgba(255,140,0,0.15);padding:7px 0;display:flex;align-items:center;justify-content:center;gap:12px}
+.nt-label{font-size:12px;color:#ffaa0099;letter-spacing:0.5px;text-transform:uppercase}
+.nt-val{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:#ffaa00;min-width:28px;text-align:center;padding:0 4px;border-left:1px solid rgba(255,140,0,0.2);border-right:1px solid rgba(255,140,0,0.2);height:32px;display:flex;align-items:center;justify-content:center;background:rgba(255,140,0,0.05)}
+.nt-val.active{text-shadow:0 0 8px rgba(255,170,0,0.6)}
+.nt-controls{display:flex;align-items:center;gap:0;border:1px solid rgba(255,140,0,0.3);border-radius:8px;overflow:hidden}
+.nt-btn{width:32px;height:32px;border:none;background:rgba(0,20,40,0.8);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:all 0.15s;flex-shrink:0;color:#ffaa00}
+.nt-btn:active{background:rgba(255,170,0,0.2)}
+.item-card.nt-active{border-left:2px solid rgba(255,140,0,0.4)}
+
+.sec-complete{border-color:rgba(0,255,200,0.4)!important;box-shadow:0 0 20px rgba(0,255,200,0.08)!important}
+.sec-title-complete{color:#00ffc8!important;text-shadow:0 0 10px rgba(0,255,200,0.5)}
+
+.mini-val.mags{color:#cc66ff}
+.mini-val.mags.active{color:#cc66ff;text-shadow:0 0 8px rgba(200,100,255,0.6)}
+
+.search-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;background:rgba(0,20,40,0.6);border:1px solid rgba(0,255,255,0.2);border-radius:12px;padding:8px 14px;transition:border-color 0.2s}
+.search-bar:focus-within{border-color:rgba(0,255,255,0.5);box-shadow:0 0 12px rgba(0,255,255,0.1)}
+.search-icon{font-size:16px;color:#00ffff66;flex-shrink:0}
+.search-input{flex:1;background:none;border:none;outline:none;font-size:15px;color:#c0eeff;font-family:'Exo 2',sans-serif}
+.search-input::placeholder{color:#00ffff33}
+.search-clear{background:none;border:none;cursor:pointer;color:#00ffff44;font-size:18px;padding:0;line-height:1;flex-shrink:0;transition:color 0.2s}
+.search-clear:hover{color:#00ffff99}
+.search-empty{text-align:center;padding:40px 20px;font-size:14px;color:#00ffff44}
+.section-move-select{border:1px solid rgba(0,255,255,0.4);border-radius:8px;padding:10px 12px;font-size:15px;background:#0a1428;color:#00ffff;font-family:'Exo 2',sans-serif;outline:none;width:100%;margin-bottom:10px;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2300ffff' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.section-move-select:focus{border-color:#00ffff;box-shadow:0 0 10px rgba(0,255,255,0.2)} .section-move-select option{background:#0a1428;color:#00ffff}
+
+.reorder-btns{display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+.reorder-btn{width:28px;height:22px;border:1px solid rgba(0,255,255,0.2);border-radius:5px;background:rgba(0,255,255,0.05);cursor:pointer;color:#00ffff88;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;-webkit-tap-highlight-color:transparent}
+.reorder-btn:active{background:rgba(0,255,255,0.2);color:#00ffff}
+.reorder-btn:disabled{opacity:0.2;cursor:default}
+.sec-rename-input{flex:1;background:rgba(0,20,40,0.8);border:1px solid rgba(0,255,255,0.4);border-radius:8px;padding:4px 10px;font-size:15px;font-weight:600;color:#00ffff;font-family:'Exo 2',sans-serif;outline:none;box-shadow:0 0 8px rgba(0,255,255,0.1)}
+.sec-rename-save{background:rgba(0,255,200,0.15);border:1px solid rgba(0,255,200,0.4);border-radius:8px;cursor:pointer;color:#00ffc8;padding:4px 10px;font-size:13px;flex-shrink:0}
+.sec-rename-cancel{background:none;border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;color:#ffffff44;padding:4px 10px;font-size:13px;flex-shrink:0}
+.sec-edit-btn{background:none;border:1px solid rgba(0,255,255,0.2);border-radius:6px;cursor:pointer;color:#00ffff66;padding:3px 7px;font-size:12px;flex-shrink:0;transition:all 0.15s}
+.sec-edit-btn:active{background:rgba(0,255,255,0.1);color:#00ffff}
+
+.av-c1{background:rgba(255,80,150,0.1);color:#ff5096;box-shadow:0 0 8px rgba(255,80,150,0.3)}
+.av-c2{background:rgba(80,200,255,0.1);color:#50c8ff;box-shadow:0 0 8px rgba(80,200,255,0.3)}
+.av-c3{background:rgba(255,200,50,0.1);color:#ffc832;box-shadow:0 0 8px rgba(255,200,50,0.3)}
+.av-c4{background:rgba(50,255,180,0.1);color:#32ffb4;box-shadow:0 0 8px rgba(50,255,180,0.3)}
+.av-c5{background:rgba(200,80,255,0.1);color:#c850ff;box-shadow:0 0 8px rgba(200,80,255,0.3)}
+.av-c6{background:rgba(255,140,50,0.1);color:#ff8c32;box-shadow:0 0 8px rgba(255,140,50,0.3)}
+.add-section-card{background:rgba(0,255,255,0.03);border:1px dashed rgba(0,255,255,0.2);border-radius:14px;margin-bottom:10px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.add-section-title{font-size:13px;color:#00ffff88;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px}
+.type-btns{display:flex;gap:8px}
+.type-btn{flex:1;padding:7px;border-radius:8px;border:1px solid rgba(0,255,255,0.2);background:none;color:#00ffff66;font-size:13px;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all 0.2s}
+.type-btn.active{background:rgba(0,255,255,0.12);color:#00ffff;border-color:rgba(0,255,255,0.5)}
+.del-sec-btn{background:none;border:1px solid rgba(255,68,102,0.3);border-radius:8px;cursor:pointer;color:#ff4466;padding:3px 8px;font-size:12px;flex-shrink:0}
+
+.loc-select{margin-bottom:6px!important}
+.loc-custom-input{margin-top:4px!important}
+
+/* PROGRESS RING */
+.ring-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:12px}
+.ring-svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:rgba(0,255,255,0.1);stroke-width:8}
+.ring-fill{fill:none;stroke:url(#ringGrad);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 0.5s}
+.ring-text{font-family:'Orbitron',monospace;fill:#00ffff;text-anchor:middle;dominant-baseline:middle}
+.ring-pct{font-size:20px;font-weight:700}
+.ring-lbl{font-size:9px;fill:#00ffff66;letter-spacing:1px}
+.ring-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%;margin-top:8px}
+
+/* HOLIDAY BANNER */
+.holiday-banner{background:rgba(0,255,200,0.06);border:1px solid rgba(0,255,200,0.2);border-radius:12px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.holiday-name{font-family:'Orbitron',monospace;font-size:14px;color:#00ffc8;text-shadow:0 0 8px rgba(0,255,200,0.4);flex:1}
+.holiday-date{font-size:12px;color:#00ffff66}
+.holiday-edit-panel{background:rgba(0,10,30,0.9);border:1px solid rgba(0,255,200,0.2);border-radius:12px;padding:12px;margin-bottom:10px}
+
+/* COLLAPSE ALL */
+.ctrl-bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.ctrl-btn{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid rgba(0,255,255,0.2);background:rgba(0,255,255,0.05);cursor:pointer;color:#00ffff88;font-family:'Exo 2',sans-serif;transition:all 0.2s;white-space:nowrap}
+.ctrl-btn:active{background:rgba(0,255,255,0.15);color:#00ffff}
+
+/* CELEBRATION */
+.celebration{position:fixed;inset:0;background:rgba(0,5,20,0.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;padding:20px;text-align:center}
+.celeb-emoji{font-size:64px;margin-bottom:16px;animation:bounce 0.6s infinite alternate}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+.celeb-title{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:#00ffc8;text-shadow:0 0 20px rgba(0,255,200,0.8);margin-bottom:8px}
+.celeb-sub{font-size:15px;color:#00ffff88;margin-bottom:32px;line-height:1.6}
+.celeb-btn{background:rgba(0,255,200,0.15);border:1px solid rgba(0,255,200,0.5);border-radius:14px;padding:12px 28px;font-size:15px;color:#00ffc8;cursor:pointer;font-family:'Exo 2',sans-serif;box-shadow:0 0 20px rgba(0,255,200,0.2)}
+
+/* NOTES */
+.notes-field{width:100%;border:1px solid rgba(0,255,255,0.2);border-radius:10px;padding:8px 12px;font-size:13px;background:rgba(0,20,40,0.8);color:#c0eeff;font-family:'Exo 2',sans-serif;outline:none;resize:none;min-height:60px;margin-top:6px}
+.notes-field:focus{border-color:rgba(0,255,255,0.5)}
+.item-note{font-size:11px;color:#ffaa0088;margin-top:3px;font-style:italic}
+
+/* SORT BTN */
+.sort-btn{font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid rgba(0,255,255,0.2);background:rgba(0,255,255,0.05);cursor:pointer;color:#00ffff66;font-family:'Exo 2',sans-serif;margin-left:4px}
+
+/* SHOPPING */
+.shop-item-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(0,255,255,0.06)}
+.shop-item-row:last-child{border-bottom:none}
+.shop-item-row input[type=checkbox]{width:20px;height:20px;accent-color:#10b981;flex-shrink:0}
+.shop-name{flex:1;font-size:14px;color:#c0eeff}
+.shop-name.done{text-decoration:line-through;color:#ffffff33}
+.shop-qty{font-size:12px;color:#00ffff66;margin-right:4px}
+</style>
+</head>
+<body>
+
+<div class="pin-screen" id="pin-screen">
+  <div class="pin-title">🏕️ Holiday Packing</div>
+  <div class="pin-subtitle">ENTER PIN TO CONTINUE</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinPress('1')">1</button>
+    <button class="pin-btn" onclick="pinPress('2')">2</button>
+    <button class="pin-btn" onclick="pinPress('3')">3</button>
+    <button class="pin-btn" onclick="pinPress('4')">4</button>
+    <button class="pin-btn" onclick="pinPress('5')">5</button>
+    <button class="pin-btn" onclick="pinPress('6')">6</button>
+    <button class="pin-btn" onclick="pinPress('7')">7</button>
+    <button class="pin-btn" onclick="pinPress('8')">8</button>
+    <button class="pin-btn" onclick="pinPress('9')">9</button>
+    <button class="pin-btn empty"></button>
+    <button class="pin-btn" onclick="pinPress('0')">0</button>
+    <button class="pin-btn del" onclick="pinDel()">⌫</button>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00ffff"/>
+      <stop offset="100%" style="stop-color:#00ffc8"/>
+    </linearGradient>
+  </defs>
+</svg>
+<div id="celebration-overlay" style="display:none" class="celebration">
+  <div class="celeb-emoji">🎉</div>
+  <div class="celeb-title" id="celeb-title">All Packed!</div>
+  <div class="celeb-sub" id="celeb-sub">Everything is packed and ready to go.<br>Have an amazing holiday!</div>
+  <button class="celeb-btn" onclick="dismissCelebration()">Let's go! 🏕️</button>
+</div>
+<div class="header">
+  <div class="header-top">
+    <span class="header-title">🏕️ Holiday Packing</span>
+    <div class="sync-status"><span class="sync-dot" id="sdot"></span><span id="slbl">connecting...</span></div>
+  </div>
+  <div class="dur-row">
+    <label for="dur">Duration</label>
+    <input type="range" id="dur" min="1" max="60" step="1" value="7" oninput="setDays(+this.value)">
+    <span class="days-val" id="days-out">7</span>
+    <span class="days-unit">days</span>
+  </div>
+</div>
+<div class="nav" id="nav"></div>
+<div class="content" id="content"><div class="loading">Loading your packing list...</div></div>
+<div class="saved-toast" id="toast">Saved ✓</div>
+
+<script>
+const API_KEY='$2a$10$j.laPOvt3LSDrWC0DSN3oePhIXm/ipg3mpgAlBUysmibY8/42sl76';
+const BIN_BASE='https://api.jsonbin.io/v3/b';
+let BIN_ID=localStorage.getItem('hpk_bin_id')||'6a53f304da38895dfe53b246';
+let saveTimer=null;
+let lastSaved='';
+
+const SECTIONS=[
+  {id:'checks',label:'Pre-departure checks',av:'!',cls:'av-checks',type:'check'},
+  {id:'meg',label:'Meg',av:'M',cls:'av-meg',type:'pack'},
+  {id:'andy',label:'Andy',av:'A',cls:'av-andy',type:'pack'},
+  {id:'eleanor',label:'Eleanor',av:'E',cls:'av-eleanor',type:'pack'},
+  {id:'caravan',label:'Caravan',av:'Cv',cls:'av-caravan',type:'pack'},
+  {id:'camping',label:'Camping',av:'Ca',cls:'av-camping',type:'pack'},
+  {id:'household',label:'Household',av:'H',cls:'av-household',type:'pack'},
+  {id:'health',label:'Health',av:'Rx',cls:'av-health',type:'pack'},
+  {id:'bedding',label:'Bedding',av:'B',cls:'av-bedding',type:'pack'},
+  {id:'food',label:'Food',av:'F',cls:'av-food',type:'pack'},
+  {id:'media',label:'Media & Tech',av:'T',cls:'av-media',type:'pack'},
+  {id:'leftcaravan',label:'Left at Caravan',av:'Lc',cls:'av-leftcaravan',type:'pack'},
+  {id:'draindown',label:'Drain Down Checklist',av:'D',cls:'av-draindown',type:'check'},
+];
+
+const SEED=[
+  {s:'checks',n:'Wash van',loc:'',min:1,pd:0},
+  {s:'checks',n:'Tyre pressure check',loc:'',min:1,pd:0},
+  {s:'checks',n:'Fluids check',loc:'',min:1,pd:0},
+  {s:'checks',n:'Cut hedges & grass',loc:'',min:1,pd:0},
+  {s:'checks',n:'Caravan battery fitted',loc:'Under Stairs',min:1,pd:0},
+  {s:'meg',n:'Underwear',loc:'Meg',min:2,pd:7},
+  {s:'meg',n:'Socks',loc:'Meg',min:2,pd:7},
+  {s:'meg',n:'PJs',loc:'Meg',min:1,pd:1.4},
+  {s:'meg',n:'T-shirts',loc:'Meg',min:2,pd:7},
+  {s:'meg',n:'Jumpers',loc:'Meg',min:1,pd:2.1},
+  {s:'meg',n:'Joggers',loc:'Meg',min:1,pd:2.1},
+  {s:'meg',n:'Trousers',loc:'Meg',min:1,pd:1.1},
+  {s:'meg',n:'Book',loc:'Meg',min:1,pd:0},
+  {s:'meg',n:'Phone',loc:'Meg',min:1,pd:0},
+  {s:'meg',n:'Headphones',loc:'Meg',min:1,pd:0},
+  {s:'meg',n:'Phone charger',loc:'Meg',min:1,pd:0},
+  {s:'meg',n:'Vape & pods/coils',loc:'Meg',min:2,pd:0},
+  {s:'meg',n:'Vape oil',loc:'Meg',min:0,pd:7},
+  {s:'meg',n:'Wallet & cards',loc:'Meg',min:1,pd:0},
+  {s:'meg',n:'Deodorant',loc:'Bathroom - Floor Unit',min:1,pd:0},
+  {s:'meg',n:'Sanitary towels',loc:'Bathroom - Wardrobe',min:1,pd:0},
+  {s:'meg',n:'Tampons',loc:'Bathroom - Wardrobe',min:1,pd:0},
+  {s:'meg',n:'Manicure set',loc:'Meg chest of drawers',min:1,pd:0},
+  {s:'andy',n:'Pants',loc:'Andy',min:1,pd:7},
+  {s:'andy',n:'Socks',loc:'Andy',min:1,pd:7},
+  {s:'andy',n:'T-shirts',loc:'Andy',min:1,pd:3.5},
+  {s:'andy',n:'Shorts',loc:'Andy',min:1,pd:2.3},
+  {s:'andy',n:'Jumper',loc:'Andy',min:1,pd:2.3},
+  {s:'andy',n:'Jeans',loc:'Andy',min:1,pd:1.8},
+  {s:'andy',n:'Joggers',loc:'Andy',min:1,pd:2.3},
+  {s:'andy',n:'Coat',loc:'Andy',min:1,pd:1.1},
+  {s:'andy',n:'PJs',loc:'Andy',min:1,pd:1.4},
+  {s:'andy',n:'Crocs',loc:'Andy',min:1,pd:0},
+  {s:'andy',n:'Trainers',loc:'Andy',min:1,pd:0},
+  {s:'andy',n:'Walking boots',loc:'Andy',min:1,pd:0},
+  {s:'andy',n:'Swim shorts',loc:'Andy',min:1,pd:0},
+  {s:'andy',n:'Belt',loc:'Andy',min:1,pd:0},
+  {s:'andy',n:'Watch',loc:'Andy',min:1,pd:0},
+  {s:'andy',n:'Prescriptions',loc:'Andy',min:1,pd:0},
+  {s:'andy',n:'Blood pressure monitor',loc:'Andy',min:1,pd:0},
+  {s:'andy',n:'Beard trimmer',loc:'Andy',min:1,pd:0},
+  {s:'eleanor',n:'Underwear',loc:'Eleanor',min:2,pd:7},
+  {s:'eleanor',n:'T-shirts',loc:'Eleanor',min:1,pd:7},
+  {s:'eleanor',n:'Jumpers',loc:'Eleanor',min:0,pd:2.8},
+  {s:'eleanor',n:'Socks',loc:'Eleanor',min:2,pd:7},
+  {s:'eleanor',n:'Trousers',loc:'Eleanor',min:0,pd:2.8},
+  {s:'eleanor',n:'Shorts',loc:'Eleanor',min:0,pd:2.8},
+  {s:'eleanor',n:'Dress',loc:'Eleanor',min:0,pd:2.1},
+  {s:'eleanor',n:'Swimming costume',loc:'Eleanor',min:1,pd:0},
+  {s:'eleanor',n:'PJs',loc:'Eleanor',min:0,pd:2.1},
+  {s:'eleanor',n:'Hairbrush',loc:'Kitchen - Trolley',min:1,pd:0},
+  {s:'eleanor',n:'Hairbands',loc:'Kitchen - Trolley',min:1,pd:4.2},
+  {s:'eleanor',n:'Pencil case',loc:'Kitchen - Trolley',min:1,pd:0},
+  {s:'eleanor',n:'Writing pad / activity books',loc:'Kitchen - Dresser Cupboard',min:3,pd:0},
+  {s:'eleanor',n:'Tablet',loc:'Kitchen - Trolley',min:2,pd:0},
+  {s:'eleanor',n:'Headphones',loc:'Kitchen - Trolley',min:1,pd:0},
+  {s:'eleanor',n:'Tablet charger',loc:'Kitchen - Trolley',min:1,pd:0},
+  {s:'eleanor',n:'Headphones charger',loc:'Kitchen - Trolley',min:1,pd:0},
+  {s:'caravan',n:'Trugs',loc:'Workshop - Caravan',min:4,pd:0},
+  {s:'caravan',n:'Caravan carpet',loc:'Workshop - Caravan',min:3,pd:0},
+  {s:'caravan',n:'Caravan runners',loc:'Workshop - Caravan',min:4,pd:0},
+  {s:'caravan',n:'Vacuum storage bags',loc:'Workshop - Caravan',min:10,pd:0},
+  {s:'caravan',n:'Salt',loc:'Workshop - Caravan',min:1,pd:0},
+  {s:'caravan',n:'Pepper',loc:'Workshop - Caravan',min:1,pd:0},
+  {s:'caravan',n:'Fry light',loc:'Workshop - Caravan',min:1,pd:0},
+  {s:'caravan',n:'Soy sauce',loc:'Workshop - Caravan',min:1,pd:0},
+  {s:'caravan',n:'Seasoning',loc:'Workshop - Caravan',min:1,pd:0},
+  {s:'caravan',n:'Teabag tupperware',loc:'Workshop - Caravan',min:1,pd:0},
+  {s:'caravan',n:'Groundsheet',loc:'Workshop - Caravan',min:1,pd:0},
+  {s:'caravan',n:'Tarp',loc:'Workshop - Caravan',min:1,pd:0},
+  {s:'caravan',n:'Sleeping bags',loc:'Workshop - Caravan',min:3,pd:0},
+  {s:'caravan',n:'Beach mat',loc:'Workshop - Caravan',min:1,pd:0},
+  {s:'caravan',n:'Beach bucket & spades',loc:'Workshop - Caravan',min:1,pd:0},
+  {s:'caravan',n:'Magnets',loc:'Workshop - Caravan',min:1,pd:0},
+  {s:'caravan',n:'Awning lanterns',loc:'Workshop - Caravan',min:2,pd:0},
+  {s:'caravan',n:'Spirit level',loc:'Workshop - Tools',min:1,pd:0},
+  {s:'caravan',n:'Hammer',loc:'Workshop - Tools',min:1,pd:0},
+  {s:'caravan',n:'Tool kit',loc:'Workshop - Tools',min:1,pd:0},
+  {s:'caravan',n:'Kneeling mats',loc:'',min:2,pd:0},
+  {s:'camping',n:'Gas stove',loc:'Workshop - Bushcraft/Prepping',min:2,pd:0},
+  {s:'camping',n:'Gas canisters',loc:'Workshop - Bushcraft/Prepping',min:0,pd:14},
+  {s:'camping',n:'Stove wind shield',loc:'Workshop - Bushcraft/Prepping',min:1,pd:0},
+  {s:'camping',n:'Water container',loc:'Workshop - Bushcraft/Prepping',min:1,pd:0},
+  {s:'camping',n:'Coolboxes',loc:'Workshop - Bushcraft/Prepping',min:2,pd:0},
+  {s:'camping',n:'Coolbox adapter',loc:'Workshop - Bushcraft/Prepping',min:1,pd:0},
+  {s:'camping',n:'Coolbox lead',loc:'Workshop - Bushcraft/Prepping',min:1,pd:0},
+  {s:'camping',n:'Beach chairs',loc:'Workshop - Bushcraft/Prepping',min:3,pd:0},
+  {s:'camping',n:'Adventure tarp',loc:'Workshop - Bushcraft/Prepping',min:1,pd:0},
+  {s:'camping',n:'Bushcraft kit',loc:'Workshop - Bushcraft/Prepping',min:1,pd:0},
+  {s:'camping',n:'Bike charger',loc:'Workshop - Bushcraft/Prepping',min:1,pd:0},
+  {s:'camping',n:'Tent',loc:'Workshop',min:1,pd:0},
+  {s:'camping',n:'Bikes',loc:'Workshop',min:2,pd:0},
+  {s:'camping',n:'Helmets',loc:'Workshop',min:2,pd:0},
+  {s:'camping',n:'Fishing & crabbing kit',loc:'Workshop - Fishing Gear',min:1,pd:0},
+  {s:'camping',n:'Life jacket',loc:'Workshop - Fishing Gear',min:1,pd:0},
+  {s:'camping',n:'Awning string lights',loc:'Under Stairs',min:2,pd:0},
+  {s:'camping',n:'Torches',loc:'Kitchen - Dresser',min:3,pd:0},
+  {s:'household',n:'Tin foil',loc:'Workshop - Household Cleaning',min:1,pd:0},
+  {s:'household',n:'Cling film',loc:'Workshop - Household Cleaning',min:1,pd:0},
+  {s:'household',n:'Anti-bac spray',loc:'Workshop - Household Cleaning',min:1,pd:0},
+  {s:'household',n:'Cleaning cloths',loc:'Utility - Drawer',min:3,pd:1.1},
+  {s:'household',n:'T-towels',loc:'Kitchen - Dresser Drawer',min:2,pd:2.1},
+  {s:'household',n:'Shower towels',loc:'Bathroom - Wardrobe',min:3,pd:0},
+  {s:'household',n:'Beach towels',loc:'Bathroom - Wardrobe',min:3,pd:0},
+  {s:'household',n:'Flannels',loc:'Bathroom - Wardrobe',min:3,pd:0},
+  {s:'household',n:'Toothbrushes',loc:'Bathroom - Floor Unit',min:3,pd:0},
+  {s:'household',n:'Toothpaste',loc:'Bathroom - Floor Unit',min:2,pd:0},
+  {s:'household',n:'Shampoo',loc:'Bathroom - Floor Unit',min:0,pd:1.1},
+  {s:'household',n:'Conditioner',loc:'Bathroom - Floor Unit',min:0,pd:1.1},
+  {s:'household',n:'Shower gel',loc:'Bathroom - Floor Unit',min:0,pd:1.1},
+  {s:'household',n:'Razors',loc:'Bathroom - Sink Unit',min:1,pd:0},
+  {s:'household',n:'Hand soap',loc:'Bathroom - Floor Unit',min:1,pd:0},
+  {s:'household',n:'Bin bags',loc:'Workshop - Household Cleaning',min:1,pd:0},
+  {s:'household',n:'Baby wipes',loc:'Under Stairs',min:1,pd:1.1},
+  {s:'household',n:'Anti-bac wipes',loc:'',min:1,pd:0},
+  {s:'household',n:'Grease wipes',loc:'',min:1,pd:0},
+  {s:'household',n:'Dyson',loc:'Utility',min:1,pd:0},
+  {s:'household',n:'Slippers',loc:'Utility',min:3,pd:0},
+  {s:'household',n:'Crocs',loc:'Utility',min:3,pd:0},
+  {s:'household',n:'Trainers',loc:'Utility',min:3,pd:0},
+  {s:'household',n:'Dry robes',loc:'Utility',min:2,pd:0},
+  {s:'household',n:'Waterproofs / coats',loc:'Utility',min:3,pd:0},
+  {s:'household',n:'Hats',loc:'Utility',min:3,pd:0},
+  {s:'household',n:'Keys',loc:'Utility - Key Cupboard',min:1,pd:0},
+  {s:'health',n:'Inhalers',loc:'Utility - Overhead Cupboard',min:2,pd:0},
+  {s:'health',n:'Rennie',loc:'Utility - Overhead Cupboard',min:1,pd:0},
+  {s:'health',n:'Spare glasses',loc:'Under Stairs',min:1,pd:0},
+  {s:'health',n:'Paracetamol',loc:'Utility - Overhead Cupboard',min:1,pd:0},
+  {s:'health',n:'Ibuprofen',loc:'Utility - Overhead Cupboard',min:1,pd:0},
+  {s:'health',n:'Calpol',loc:'Utility - Overhead Cupboard',min:1,pd:0},
+  {s:'health',n:'Arnica',loc:'En-Suite',min:1,pd:0},
+  {s:'health',n:'Oral thrush meds',loc:'Utility - Overhead Cupboard',min:1,pd:0},
+  {s:'health',n:'Lemsip',loc:'Kitchen',min:1,pd:0},
+  {s:'health',n:'Sun cream',loc:'Utility - Overhead Cupboard',min:1,pd:1.1},
+  {s:'health',n:'Aftersun',loc:'Utility - Overhead Cupboard',min:1,pd:0},
+  {s:'health',n:'Germolene',loc:'Utility - Overhead Cupboard',min:1,pd:0},
+  {s:'health',n:'Insect spray',loc:'Utility - Overhead Cupboard',min:1,pd:0},
+  {s:'health',n:'Bite cream',loc:'Utility - Overhead Cupboard',min:1,pd:0},
+  {s:'health',n:'Glasses cleaner',loc:'Utility - Overhead Cupboard',min:1,pd:0},
+  {s:'bedding',n:'King size flat sheet',loc:'Bedding Suitcase',min:1,pd:0},
+  {s:'bedding',n:'Double fitted sheet',loc:'Bedding Suitcase',min:1,pd:0},
+  {s:'bedding',n:'Single flat sheet',loc:'Bedding Suitcase',min:1,pd:0},
+  {s:'bedding',n:'Double mattress cover',loc:'Bedding Suitcase',min:1,pd:0},
+  {s:'bedding',n:'Single mattress cover',loc:'Bedding Suitcase',min:1,pd:0},
+  {s:'bedding',n:'Pillows',loc:'',min:5,pd:0},
+  {s:'bedding',n:'Pillow cases',loc:'Bedding Suitcase',min:5,pd:0},
+  {s:'bedding',n:'Grey throws',loc:'Bedding Suitcase',min:2,pd:0},
+  {s:'bedding',n:'Blankets',loc:'Bedding Suitcase',min:3,pd:0},
+  {s:'food',n:'Ketchup',loc:'Kitchen - Fridge',min:1,pd:0},
+  {s:'food',n:'Brown sauce',loc:'Kitchen - Fridge',min:1,pd:0},
+  {s:'food',n:'BBQ sauce',loc:'Kitchen - Fridge',min:1,pd:0},
+  {s:'food',n:'Mayo',loc:'Kitchen - Dresser Cupboard',min:0,pd:1.1},
+  {s:'food',n:'Vinegar',loc:'Kitchen',min:1,pd:0},
+  {s:'food',n:'Manky sauce',loc:'Kitchen',min:1,pd:0},
+  {s:'food',n:'Decaff tea',loc:'Kitchen - Dresser',min:1,pd:0},
+  {s:'food',n:'Tea',loc:'Kitchen - Dresser Cupboard',min:1,pd:0},
+  {s:'food',n:'Coffee',loc:'Kitchen - Cupboard',min:1,pd:0},
+  {s:'food',n:'Ground coffee',loc:'Kitchen',min:1,pd:0},
+  {s:'food',n:'Tinned food',loc:'Kitchen - Cupboard',min:1,pd:0},
+  {s:'food',n:'Water bottles',loc:'Kitchen - Cupboard',min:3,pd:0},
+  {s:'food',n:'Flask',loc:'Kitchen - Cupboard',min:1,pd:0},
+  {s:'media',n:'Power banks',loc:'Under Stairs',min:4,pd:0},
+  {s:'media',n:'Bluetti & charger',loc:'Under Stairs',min:1,pd:0},
+  {s:'media',n:'Drone',loc:'Under Stairs',min:1,pd:0},
+  {s:'media',n:'Camera',loc:'',min:1,pd:0},
+  {s:'media',n:'Action camera',loc:'Under Stairs',min:1,pd:0},
+  {s:'media',n:'Reading books',loc:'Eleanor / Andy / Meg',min:2,pd:0},
+];
+
+// state.counts = {itemId: number} — how many of each item packed
+// state.checked = {itemId: true} — for checklist items only
+// state.atCaravan = {itemId: true} — toggle
+let state={days:7,view:'pack',items:[],checked:{},counts:{},atCaravan:{},caravanCounts:{},magsCount:{},ntCounts:{},collapsed:{},sectionNames:{},customSections:[],customLocations:[],sectionOrder:[],notes:{},holidayName:'',holidayDate:'',shopping:[],celebrationSeen:false};
+let editingId=null;
+let editingSection=null;
+let searchTerm='';
+
+function syncDot(s,msg){
+  document.getElementById('sdot').className='sync-dot '+s;
+  document.getElementById('slbl').textContent=msg;
+}
+
+async function createBin(){
+  syncDot('syncing','creating...');
+  try{
+    const r=await fetch(BIN_BASE,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Master-Key':API_KEY,'X-Bin-Name':'HolidayPacking','X-Bin-Private':'true'},
+      body:JSON.stringify(state)
+    });
+    const d=await r.json();
+    if(d.metadata&&d.metadata.id){
+      BIN_ID=d.metadata.id;
+      localStorage.setItem('hpk_bin_id',BIN_ID);
+      syncDot('synced','synced ✓');
+      return true;
+    }
+  }catch(e){}
+  syncDot('error','error');
+  return false;
+}
+
+async function loadBin(){
+  if(!BIN_ID)return false;
+  syncDot('syncing','loading...');
+  try{
+    const r=await fetch(BIN_BASE+'/'+BIN_ID+'/latest',{headers:{'X-Master-Key':API_KEY}});
+    const d=await r.json();
+    if(d.record&&d.record.items&&d.record.items.length>0){
+      Object.assign(state,d.record);
+      if(!state.atCaravan)state.atCaravan={};
+      if(!state.counts)state.counts={};
+      if(!state.checked)state.checked={};
+      if(!state.caravanCounts)state.caravanCounts={};
+      if(!state.ntCounts)state.ntCounts={};
+  if(!state.magsCount)state.magsCount={};
+  if(!state.sectionNames)state.sectionNames={};
+  if(!state.customSections)state.customSections=[];
+  if(!state.customLocations)state.customLocations=[];
+  if(!state.sectionOrder||!state.sectionOrder.length)state.sectionOrder=getSectionsDefault().map(s=>s.id);
+  if(!state.notes)state.notes={};
+  if(!state.shopping)state.shopping=[];
+  if(state.holidayName===undefined)state.holidayName='';
+  if(state.holidayDate===undefined)state.holidayDate='';
+  if(state.celebrationSeen===undefined)state.celebrationSeen=false;
+      syncDot('synced','synced ✓');
+      return true;
+    }
+  }catch(e){}
+  syncDot('error','load failed');
+  return false;
+}
+
+async function pushBin(){
+  if(!BIN_ID){await createBin();return;}
+  const data=JSON.stringify(state);
+  if(data===lastSaved)return;
+  lastSaved=data;
+  syncDot('syncing','saving...');
+  try{
+    const r=await fetch(BIN_BASE+'/'+BIN_ID,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},
+      body:data
+    });
+    const d=await r.json();
+    if(d.record){syncDot('synced','synced ✓');showToast();}
+    else syncDot('error','save failed');
+  }catch(e){syncDot('error','offline');}
+}
+
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(pushBin,1200);}
+
+let toastTimer;
+function showToast(){
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),1500);
+}
+
+function seedItems(){
+  state.items=SEED.map((d,i)=>({id:'i'+i,section:d.s,name:d.n,location:d.loc,min:d.min,perDay:d.pd}));
+}
+
+async function init(){
+  const loaded=await loadBin();
+  if(!loaded){seedItems();await createBin();}
+  if(!state.atCaravan)state.atCaravan={};
+  if(!state.counts)state.counts={};
+  if(!state.checked)state.checked={};
+  if(!state.caravanCounts)state.caravanCounts={};
+  if(!state.ntCounts)state.ntCounts={};
+  if(!state.magsCount)state.magsCount={};
+  if(!state.sectionNames)state.sectionNames={};
+  if(!state.customSections)state.customSections=[];
+  if(!state.customLocations)state.customLocations=[];
+  if(!state.sectionOrder||!state.sectionOrder.length)state.sectionOrder=getSectionsDefault().map(s=>s.id);
+  if(!state.notes)state.notes={};
+  if(!state.shopping)state.shopping=[];
+  if(state.holidayName===undefined)state.holidayName='';
+  if(state.holidayDate===undefined)state.holidayDate='';
+  if(state.celebrationSeen===undefined)state.celebrationSeen=false;
+  // One-time migration: convert stored perDay values to perWeek
+  if(!state.perWeekMigrated&&state.items&&state.items.length>0){
+    state.items.forEach(i=>{if(i.perDay>0)i.perDay=Math.round(i.perDay*7*10)/10;});
+    state.perWeekMigrated=true;
+    pushBin();
+  }
+  document.getElementById('dur').value=state.days;
+  document.getElementById('days-out').textContent=state.days;
+  render();
+}
+
+
+function searchBar(placeholder){
+  return `<div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" type="text" placeholder="${placeholder}" value="${esc(searchTerm)}" oninput="setSearch(this.value)" id="search-input">
+    ${searchTerm?`<button class="search-clear" onclick="setSearch('')">✕</button>`:''}
+  </div>`;
+}
+function setSearch(v){
+  searchTerm=v;
+  renderContent();
+  // Re-focus search input after render
+  const el=document.getElementById('search-input');
+  if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}
+}
+function matchSearch(item){
+  if(!searchTerm)return true;
+  return item.name.toLowerCase().includes(searchTerm.toLowerCase())||
+    (item.location||'').toLowerCase().includes(searchTerm.toLowerCase());
+}
+
+const DEFAULT_LOCATIONS=["Caravan - Boot Locker", "Caravan - Front Side Locker", "Caravan - Under Bed", "Caravan - Inside Front Storage", "Caravan - Wardrobe", "Caravan - Dinette Storage 1", "Caravan - Dinette Storage 2", "Caravan - Dinette Table", "Caravan - Under Fridge", "Caravan - Above Fridge", "Caravan - Above Bed 1", "Caravan - Above Bed 2", "Caravan - Above Bed 3", "Caravan - Oven", "Caravan - Under Oven", "Caravan - Kitchen Cupboard 1", "Caravan - Kitchen Cupboard 2", "Caravan - Kitchen Drawer Top", "Caravan - Kitchen Drawer Middle", "Caravan - Kitchen Drawer Bottom", "Caravan - Dinette Cupboard 1", "Caravan - Dinette Cupboard 2", "Caravan - Kitchen Sliding Cupboard", "Caravan - Lounge Cupboard 1", "Caravan - Lounge Cupboard 2", "Caravan - Floor", "Caravan - Cupboard Wardrobe 1", "Caravan - Cupboard Wardrobe 2", "Caravan - Bathroom", "Caravan - Bathroom Cupboard", "Home - Workshop", "Home - Eleanors Room", "Home - Bedroom", "Home - Kitchen", "Home - Front Room", "Home - Under Stairs", "Home - Utility", "Home - Bathroom"];
+
+const CUSTOM_COLORS=[
+  {cls:'av-c1',bg:'rgba(255,80,150,0.1)',col:'#ff5096',shadow:'rgba(255,80,150,0.3)'},
+  {cls:'av-c2',bg:'rgba(80,200,255,0.1)',col:'#50c8ff',shadow:'rgba(80,200,255,0.3)'},
+  {cls:'av-c3',bg:'rgba(255,200,50,0.1)',col:'#ffc832',shadow:'rgba(255,200,50,0.3)'},
+  {cls:'av-c4',bg:'rgba(50,255,180,0.1)',col:'#32ffb4',shadow:'rgba(50,255,180,0.3)'},
+  {cls:'av-c5',bg:'rgba(200,80,255,0.1)',col:'#c850ff',shadow:'rgba(200,80,255,0.3)'},
+  {cls:'av-c6',bg:'rgba(255,140,50,0.1)',col:'#ff8c32',shadow:'rgba(255,140,50,0.3)'},
+];
+
+function isLocationCaravan(item){return item.location&&item.location.toLowerCase().startsWith('caravan');}
+function isLocationMags(item){return item.location&&item.location.toLowerCase().startsWith('mags');}
+function isAutoCaravan(item){return isLocationCaravan(item)||caravanCount(item)>0;}
+function isAutoMags(item){return isLocationMags(item)||magsCount(item)>0;}
+
+function getSectionsDefault(){return SECTIONS.concat(state.customSections||[]);}
+function getSections(){
+  const all=getSectionsDefault();
+  const order=state.sectionOrder||[];
+  const ordered=order.map(id=>all.find(s=>s.id===id)).filter(Boolean);
+  const remaining=all.filter(s=>!order.includes(s.id));
+  return ordered.concat(remaining);
+}
+function getLocations(){return DEFAULT_LOCATIONS.concat(state.customLocations||[]);}
+function locationSelect(currentVal,inputId){
+  const locs=getLocations();
+  const hasMatch=locs.includes(currentVal);
+  const opts=locs.map(l=>`<option value="${esc(l)}" ${currentVal===l?'selected':''}>${esc(l)}</option>`).join('');
+  const customOpt=!hasMatch&&currentVal?`<option value="${esc(currentVal)}" selected>${esc(currentVal)}</option>`:'';
+  return `<select class="add-field loc-select" id="${inputId}" style="margin-bottom:0">
+    <option value="">-- Select location --</option>
+    ${customOpt}
+    ${opts}
+    <option value="__custom__">✏️ Type custom...</option>
+  </select>
+  <input class="add-field loc-custom-input" type="text" placeholder="Custom location" id="${inputId}_custom" style="margin-bottom:0;display:${(!hasMatch&&currentVal)||false?'block':'none'}" value="${!hasMatch?esc(currentVal):''}"
+    oninput="document.getElementById('${inputId}').value='__custom__'">`;
+}
+function getLabel(sec){return state.sectionNames[sec.id]||sec.label;}
+
+function secType(secId){const s=SECTIONS.find(s=>s.id===secId);return s?s.type:'pack';}
+function isCheck(item){return secType(item.section)==='check';}
+function isAtCaravan(item){return !!state.atCaravan[item.id];}
+function qty(item){return Math.round(item.min+(item.perDay*state.days/7));}
+function packedCount(item){return state.counts[item.id]||0;}
+function caravanCount(item){return state.caravanCounts[item.id]||0;}
+function neededToPack(item){return Math.max(0,qty(item)-caravanCount(item)-magsCount(item)-ntCount(item));}
+function ntCount(item){return state.ntCounts[item.id]||0;}
+function magsCount(item){return state.magsCount[item.id]||0;}
+function isComplete(item){
+  if(isCheck(item))return !!state.checked[item.id];
+  const needed=neededToPack(item);
+  if(needed<=0)return true;
+  return packedCount(item)>=needed;
+}
+
+function render(){renderNav();renderContent();}
+
+function renderNav(){
+  document.getElementById('nav').innerHTML=
+    ['pack','todo','byloc','caravan','mags','shopping','setup','settings'].map(v=>`<button class="nav-btn${state.view===v?' active':''}" onclick="sv('${v}')">
+      ${v==='pack'?'Pack checklist':v==='todo'?'Left to Pack':v==='byloc'?'By Location':v==='caravan'?'At Caravan':v==='mags'?'At Mags':v==='shopping'?'Shopping':v==='setup'?'Manage items':'Settings'}
+    </button>`).join('')+
+    `<button class="reset-btn" onclick="resetAll()">↺ New holiday</button>`;
+}
+
+function sv(v){state.view=v;editingId=null;editingSection=null;searchTerm='';render();}
+function setDays(v){state.days=v;document.getElementById('days-out').textContent=v;scheduleSave();renderContent();}
+
+function renderContent(){
+  const el=document.getElementById('content');
+  if(state.view==='pack') el.innerHTML=buildPack();
+  else if(state.view==='todo') el.innerHTML=buildTodo();
+  else if(state.view==='caravan') el.innerHTML=buildCaravanView();
+  else if(state.view==='mags') el.innerHTML=buildMagsView();
+  else if(state.view==='shopping') el.innerHTML=buildShopping();
+  else if(state.view==='byloc') el.innerHTML=buildByLocation();
+  else if(state.view==='settings') el.innerHTML=buildSettings();
+  else el.innerHTML=buildSetup();
+}
+
+function buildPack(){
+  const packItems=state.items.filter(i=>!isCheck(i)&&!isAtCaravan(i));
+  const checkItems=state.items.filter(i=>isCheck(i));
+  const totalPack=packItems.length;
+  const donePack=packItems.filter(i=>isComplete(i)).length;
+  const doneChecks=checkItems.filter(i=>isComplete(i)).length;
+  const atCaravanCount=state.items.filter(i=>!isCheck(i)&&isAtCaravan(i)).length;
+  const pct=totalPack?Math.round(donePack/totalPack*100):0;
+
+  let h=`<div class="stats-bar">
+    <div class="stat"><div class="stat-val">${donePack}/${totalPack}</div><div class="stat-lbl">items packed</div></div>
+    <div class="stat"><div class="stat-val">${doneChecks}/${checkItems.length}</div><div class="stat-lbl">checks done</div></div>
+    <div class="stat"><div class="stat-val">${atCaravanCount}</div><div class="stat-lbl">at caravan</div></div>
+  </div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>`;
+
+  getSections().forEach(sec=>{
+    const secItems=state.items.filter(i=>i.section===sec.id);
+    const check=sec.type==='check';
+    const visibleItems=check?secItems.filter(i=>matchSearch(i)):getSectionItems(sec.id);
+    const atCaravanInSec=check?0:secItems.filter(i=>isAtCaravan(i)).length;
+    if(!secItems.length)return;
+    const doneInSec=visibleItems.filter(i=>isComplete(i)).length;
+    const col=state.collapsed[sec.id];
+
+    const secComplete=visibleItems.length>0&&doneInSec===visibleItems.length;
+    h+=`<div class="section-card${secComplete?' sec-complete':''}"><div class="section-head" onclick="tc('${sec.id}')">
+      <div class="avatar ${sec.cls}">${sec.av}</div>
+      <span class="section-title${secComplete?' sec-title-complete':''}">${getLabel(sec)}${secComplete?' ✓':''}</span>
+      <span class="progress-pill">${doneInSec}/${visibleItems.length}</span>
+      <button class="sort-btn" onclick="event.stopPropagation();toggleSort('${sec.id}')" title="Sort A-Z">${sortedSections[sec.id]?'A-Z ✓':'A-Z'}</button>
+      <span class="chevron${col?'':' open'}">⌄</span>
+    </div>`;
+
+    if(!col){
+      h+=`<div class="item-list">`;
+      if(visibleItems.length===0){
+        h+=`<div style="padding:12px 14px;font-size:13px;color:#aaa">All items are at the caravan ✓</div>`;
+      } else {
+        visibleItems.forEach(item=>{
+          const done=isComplete(item);
+          if(check){
+            const ticked=!!state.checked[item.id];
+            h+=`<div class="item-row">
+              <input type="checkbox" ${ticked?'checked':''} onchange="tk('${item.id}',this.checked)">
+              <div class="item-info">
+                <div class="item-name${ticked?' done':''}">${esc(item.name)}</div>
+                ${item.location?`<div class="item-meta">${esc(item.location)}</div>`:''}
+              </div>
+              <span class="check-badge ${ticked?'done-badge':'todo'}">${ticked?'done':'to do'}</span>
+            </div>`;
+          } else {
+            const needed=neededToPack(item);
+            const packed=packedCount(item);
+            const totalNeeded=qty(item);
+            const atCar=caravanCount(item);
+            const pdStr=item.perDay>0?` (min ${item.min}+${item.perDay}/wk)`:'';
+            const nt=ntCount(item);
+            const allDone=needed<=0;
+            const allPacked=!allDone&&packed>=needed&&needed>0;
+            const complete=allDone||allPacked;
+
+            h+=`<div class="item-card${complete?' complete':''}${nt>0&&!complete?' nt-active':''}">
+              <div class="item-card-row1">
+                <div class="item-card-name${complete?' complete':''}">${esc(item.name)}${complete?' ✓':''}</div>
+                <div class="item-card-total">Total: <span>${totalNeeded}</span>${pdStr}</div>
+              </div>
+              ${item.location?`<div class="item-card-loc">${esc(item.location)}</div>`:''}
+              ${state.notes[item.id]?`<div class="item-note">📝 ${esc(state.notes[item.id])}</div>`:''}
+              <div class="nt-row">
+                <span class="nt-label">🚫 Not this trip</span>
+                <div class="nt-controls">
+                  <button class="nt-btn" onclick="adjustNTCount('${item.id}',-1)">−</button>
+                  <span class="nt-val${nt>0?' active':''}">${nt}</span>
+                  <button class="nt-btn" onclick="adjustNTCount('${item.id}',1)">+</button>
+                </div>
+              </div>
+              <div class="item-card-row2">
+                <div class="item-card-col">
+                  <div class="item-card-label">🏕 At Caravan</div>
+                  <div class="item-mini-controls">
+                    <button class="mini-btn minus" onclick="adjustCaravanCount('${item.id}',-1)">−</button>
+                    <span class="mini-val${allDone?' complete':''}">${atCar}</span>
+                    <button class="mini-btn plus" onclick="adjustCaravanCount('${item.id}',1)">+</button>
+                  </div>
+                </div>
+                <div class="item-card-divider"></div>
+                <div class="item-card-col">
+                  <div class="item-card-label">🏠 At Mags</div>
+                  <div class="item-mini-controls">
+                    <button class="mini-btn minus" onclick="adjustMagsCount('${item.id}',-1)">−</button>
+                    <span class="mini-val mags${magsCount(item)>0?' active':''}">${magsCount(item)}</span>
+                    <button class="mini-btn plus" onclick="adjustMagsCount('${item.id}',1)">+</button>
+                  </div>
+                </div>
+              </div>
+              <div class="item-card-row2" style="border-top:1px solid rgba(0,255,255,0.06)">
+                <div class="item-card-col">
+                  <div class="item-card-label">📦 To Pack</div>
+                  <div class="item-to-pack${allDone||(needed-packed)<=0?' all-done':''}">${Math.max(0,needed-packed)}</div>
+                </div>
+                <div class="item-card-divider"></div>
+                <div class="item-card-col">
+                  <div class="item-card-label">✓ Packed</div>
+                  <div class="item-mini-controls">
+                    <button class="mini-btn minus" onclick="adjustCount('${item.id}',-1)">−</button>
+                    <span class="mini-val${allPacked?' complete':''}">${packed}</span>
+                    <button class="mini-btn plus" onclick="adjustCount('${item.id}',1)">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+          }
+        });
+      }
+      h+=`</div>`;
+      if(atCaravanInSec>0){
+        h+=`<div class="at-caravan-count">🏕 ${atCaravanInSec} item${atCaravanInSec>1?'s':''} already at caravan</div>`;
+      }
+    }
+    h+=`</div>`;
+  });
+  return h;
+}
+
+
+
+
+let newSecType='pack';
+
+function getLocVal(baseId){
+  const sel=document.getElementById(baseId);
+  if(!sel)return '';
+  if(sel.value==='__custom__'){
+    const ci=document.getElementById(baseId+'_custom');
+    return ci?ci.value.trim():'';
+  }
+  return sel.value;
+}
+
+function addLocation(){
+  const inp=document.getElementById('new-loc-input');
+  if(!inp||!inp.value.trim())return;
+  const v=inp.value.trim();
+  if(getLocations().includes(v)){inp.value='';return;}
+  state.customLocations.push(v);
+  inp.value='';
+  scheduleSave();renderContent();
+}
+
+function deleteLocation(loc){
+  state.customLocations=state.customLocations.filter(l=>l!==loc);
+  scheduleSave();renderContent();
+}
+
+function aiGlobal(){
+  const nEl=document.getElementById('global-item-name');
+  if(!nEl||!nEl.value.trim())return;
+  const sid=(document.getElementById('global-sec-select')||{}).value||getSections()[0].id;
+  const check=secType(sid)==='check';
+  const min=check?1:Math.max(0,parseFloat((document.getElementById('global-item-min')||{}).value)||0);
+  const pd=check?0:Math.max(0,parseFloat((document.getElementById('global-item-pd')||{}).value)||0);
+  const loc=getLocVal('global-item-loc');
+  state.items.push({id:'i'+Date.now()+Math.random().toString(36).slice(2),section:sid,name:nEl.value.trim(),location:loc,min:Math.round(min),perDay:pd});
+  nEl.value='';
+  scheduleSave();renderContent();
+}
+
+function addSection(){
+  const inp=document.getElementById('new-sec-name');
+  if(!inp||!inp.value.trim())return;
+  const name=inp.value.trim();
+  const id='cs_'+Date.now();
+  const colorIdx=(state.customSections.length)%CUSTOM_COLORS.length;
+  const col=CUSTOM_COLORS[colorIdx];
+  const av=name.replace(/[^a-zA-Z]/g,'').substring(0,2).toUpperCase()||'?';
+  state.customSections.push({id,label:name,av,cls:col.cls,type:newSecType});
+  state.sectionOrder.push(id);
+  inp.value='';
+  scheduleSave();renderContent();
+}
+
+function deleteSection(id){
+  const sec=getSections().find(s=>s.id===id);
+  const itemsInSec=state.items.filter(i=>i.section===id);
+  if(itemsInSec.length){
+    if(!confirm(`Delete "${getLabel(sec)}"? All ${itemsInSec.length} item(s) in this category will also be deleted.`))return;
+    state.items=state.items.filter(i=>i.section!==id);
+    itemsInSec.forEach(i=>{
+      delete state.checked[i.id];
+      delete state.counts[i.id];
+      delete state.caravanCounts[i.id];
+      delete state.magsCount[i.id];
+      delete state.ntCounts[i.id];
+    });
+  } else {
+    if(!confirm(`Delete category "${getLabel(sec)}"?`))return;
+  }
+  state.customSections=state.customSections.filter(s=>s.id!==id);
+  state.sectionOrder=state.sectionOrder.filter(i=>i!==id);
+  delete state.sectionNames[id];
+  scheduleSave();renderContent();
+}
+
+function setNewSecType(t){
+  newSecType=t;
+  renderContent();
+  const inp=document.getElementById('new-sec-name');
+  if(inp)inp.focus();
+}
+
+
+let editingHoliday=false;
+let sortedSections={};
+
+function collapseAll(){
+  getSections().forEach(s=>{state.collapsed[s.id]=true;state.collapsed['s_'+s.id]=true;});
+  renderContent();
+}
+function expandAll(){
+  getSections().forEach(s=>{delete state.collapsed[s.id];delete state.collapsed['s_'+s.id];});
+  renderContent();
+}
+function toggleSort(secId){
+  sortedSections[secId]=!sortedSections[secId];
+  renderContent();
+}
+function getSectionItems(secId){
+  const items=state.items.filter(i=>i.section===secId&&matchSearch(i)&&!isAtCaravan(i));
+  return sortedSections[secId]?[...items].sort((a,b)=>a.name.localeCompare(b.name)):items;
+}
+
+function saveNote(id){
+  const el=document.getElementById('note-'+id);
+  if(!el)return;
+  if(el.value.trim()) state.notes[id]=el.value.trim();
+  else delete state.notes[id];
+  scheduleSave();
+}
+
+function dismissCelebration(){
+  state.celebrationSeen=true;
+  document.getElementById('celebration-overlay').style.display='none';
+  scheduleSave();
+}
+
+function checkCelebration(){
+  const packItems=state.items.filter(i=>!isCheck(i)&&!isAtCaravan(i));
+  if(!packItems.length)return;
+  const allDone=packItems.every(i=>isComplete(i));
+  const checkItems=state.items.filter(i=>isCheck(i));
+  const allChecks=checkItems.every(i=>isComplete(i));
+  if(allDone&&allChecks&&!state.celebrationSeen){
+    const ov=document.getElementById('celebration-overlay');
+    const title=document.getElementById('celeb-title');
+    const sub=document.getElementById('celeb-sub');
+    title.textContent=state.holidayName?'All packed for '+state.holidayName+'!':'All Packed!';
+    sub.innerHTML=state.holidayDate?`Departing ${state.holidayDate}<br>Have an amazing holiday! 🚐`:`Everything is ready to go.<br>Have an amazing holiday! 🚐`;
+    ov.style.display='flex';
+  }
+}
+
+function saveHolidayInfo(){
+  const n=document.getElementById('h-name');
+  const d=document.getElementById('h-date');
+  if(n)state.holidayName=n.value.trim();
+  if(d)state.holidayDate=d.value;
+  editingHoliday=false;
+  scheduleSave();renderContent();
+}
+
+// Shopping list
+function addShopItem(){
+  const n=document.getElementById('shop-name');
+  const q=document.getElementById('shop-qty');
+  if(!n||!n.value.trim())return;
+  state.shopping.push({id:'sh'+Date.now(),name:n.value.trim(),qty:q?q.value.trim():'',done:false});
+  n.value='';if(q)q.value='';
+  scheduleSave();renderContent();
+}
+function toggleShopItem(id){
+  const item=state.shopping.find(i=>i.id===id);
+  if(item)item.done=!item.done;
+  scheduleSave();renderContent();
+}
+function deleteShopItem(id){
+  state.shopping=state.shopping.filter(i=>i.id!==id);
+  scheduleSave();renderContent();
+}
+function clearDoneShop(){
+  state.shopping=state.shopping.filter(i=>!i.done);
+  scheduleSave();renderContent();
+}
+
+
+function buildSettings(){
+  let h=`<div class="section-card" style="margin-bottom:10px">
+    <div class="section-head" style="cursor:default">
+      <span class="section-title">📍 Manage locations</span>
+    </div>
+    <div style="padding:12px 14px">
+      <div style="font-size:12px;color:#00ffff66;margin-bottom:10px">Built-in locations cannot be deleted. Add your own below.</div>
+      ${state.customLocations.length?state.customLocations.map(l=>`
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="flex:1;font-size:14px;color:#c0eeff">${esc(l)}</span>
+          <button class="del-sec-btn" onclick="deleteLocation('${esc(l)}')">✕ Delete</button>
+        </div>`).join(''):'<div style="font-size:13px;color:#00ffff44;margin-bottom:10px">No custom locations yet</div>'}
+      <div style="margin-top:8px;font-size:12px;color:#00ffff66;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Add new location</div>
+      <div class="add-row">
+        <input class="add-field" type="text" placeholder="New location name" id="new-loc-input" style="margin-bottom:0" onkeydown="if(event.key==='Enter')addLocation()">
+        <button class="add-btn" onclick="addLocation()" style="flex-shrink:0;width:auto;padding:0 14px">+ Add</button>
+      </div>
+    </div>
+  </div>`;
+
+  h+=`<div class="section-card" style="margin-bottom:10px">
+    <div class="section-head" style="cursor:default">
+      <span class="section-title">🗂 Manage categories</span>
+    </div>
+    <div style="padding:12px 14px">
+      <div style="font-size:12px;color:#00ffff66;margin-bottom:10px">Built-in categories can be renamed but not deleted. Custom categories can be deleted.</div>
+      ${getSections().map((sec,idx)=>`
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <div class="avatar ${sec.cls}" style="width:24px;height:24px;font-size:10px">${sec.av}</div>
+          <span style="flex:1;font-size:14px;color:#c0eeff">${getLabel(sec)}</span>
+          <span style="font-size:11px;color:#00ffff44;padding:2px 6px;border:1px solid rgba(0,255,255,0.1);border-radius:4px">${sec.type==='check'?'checklist':'packing'}</span>
+          ${sec.id.startsWith('cs_')?`<button class="del-sec-btn" onclick="deleteSection('${sec.id}')">✕</button>`:''}
+        </div>`).join('')}
+      <div style="margin-top:12px;font-size:12px;color:#00ffff66;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Add new category</div>
+      <input class="add-field" type="text" placeholder="Category name" id="new-sec-name" style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSection()">
+      <div class="type-btns" style="margin-bottom:8px">
+        <button class="type-btn${newSecType==='pack'?' active':''}" onclick="setNewSecType('pack')">📦 Packing list</button>
+        <button class="type-btn${newSecType==='check'?' active':''}" onclick="setNewSecType('check')">✅ Checklist</button>
+      </div>
+      <button class="add-btn" onclick="addSection()">+ Add category</button>
+    </div>
+  </div>`;
+
+  h+=`<div class="section-card" style="margin-bottom:10px">
+    <div class="section-head" style="cursor:default">
+      <span class="section-title">ℹ️ Location auto-assignment</span>
+    </div>
+    <div style="padding:12px 14px;font-size:13px;color:#00ffff88;line-height:1.7">
+      Items are automatically shown in the relevant tab based on their location:<br>
+      <span style="color:#00c8ff">🏕 At Caravan</span> — locations starting with <strong style="color:#00c8ff">Caravan</strong><br>
+      <span style="color:#cc66ff">🏠 At Mags</span> — locations starting with <strong style="color:#cc66ff">Mags</strong>
+    </div>
+  </div>`;
+
+  return h;
+}
+
+function buildByLocation(){
+  // Group all non-check, non-binary-atCaravan items by location
+  const allItems=state.items.filter(i=>!isCheck(i)&&!isAtCaravan(i)&&matchSearch(i));
+
+  // Group by location
+  const locMap={};
+  allItems.forEach(item=>{
+    const loc=item.location||'No location set';
+    if(!locMap[loc])locMap[loc]=[];
+    locMap[loc].push(item);
+  });
+
+  // Sort locations: Caravan first, then Mags, then Home, then others, then no location
+  const locs=Object.keys(locMap).sort((a,b)=>{
+    const rank=s=>s.startsWith('Caravan')?0:s.startsWith('Mags')?1:s.startsWith('Home')?2:s==='No location set'?99:3;
+    if(rank(a)!==rank(b))return rank(a)-rank(b);
+    return a.localeCompare(b);
+  });
+
+  const total=allItems.length;
+  const done=allItems.filter(i=>isComplete(i)).length;
+  const pct=total?Math.round(done/total*100):0;
+  const r=80;const circ=2*Math.PI*r;const offset=circ-(pct/100)*circ;
+
+  let h=searchBar('Search by location...');
+
+  h+=`<div class="ring-wrap">
+    <svg class="ring-svg" width="200" height="200" viewBox="0 0 200 200">
+      <circle class="ring-bg" cx="100" cy="100" r="${r}"/>
+      <circle class="ring-fill" cx="100" cy="100" r="${r}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+      <text class="ring-text" x="100" y="95" transform="rotate(90,100,100)">
+        <tspan class="ring-pct" x="100" dy="0">${pct}%</tspan>
+        <tspan class="ring-lbl" x="100" dy="18">PACKED</tspan>
+      </text>
+    </svg>
+    <div class="ring-stats">
+      <div class="stat"><div class="stat-val">${done}/${total}</div><div class="stat-lbl">packed</div></div>
+      <div class="stat"><div class="stat-val">${locs.length}</div><div class="stat-lbl">locations</div></div>
+      <div class="stat"><div class="stat-val">${allItems.filter(i=>!isComplete(i)).length}</div><div class="stat-lbl">remaining</div></div>
+    </div>
+  </div>`;
+
+  h+=`<div class="ctrl-bar">
+    <button class="ctrl-btn" onclick="collapseAll()">⊟ Collapse all</button>
+    <button class="ctrl-btn" onclick="expandAll()">⊞ Expand all</button>
+  </div>`;
+
+  if(!locs.length){
+    h+=`<div style="text-align:center;padding:40px;font-size:14px;color:#00ffff44">No items found</div>`;
+    return h;
+  }
+
+  locs.forEach(loc=>{
+    const items=locMap[loc];
+    const doneInLoc=items.filter(i=>isComplete(i)).length;
+    const locComplete=doneInLoc===items.length;
+    const colKey='loc_'+loc.replace(/[^a-z0-9]/gi,'_');
+    const col=state.collapsed[colKey];
+
+    // Pick colour based on location prefix
+    const locCls=loc.startsWith('Caravan')?'av-caravan':loc.startsWith('Mags')?'av-leftcaravan':loc.startsWith('Home')?'av-household':'av-media';
+    const locAv=loc.startsWith('Caravan')?'Cv':loc.startsWith('Mags')?'Mg':loc.startsWith('Home')?'H':'?';
+
+    h+=`<div class="section-card${locComplete?' sec-complete':''}">
+      <div class="section-head" onclick="tc('${colKey}')">
+        <div class="avatar ${locCls}">${locAv}</div>
+        <span class="section-title${locComplete?' sec-title-complete':''}">${esc(loc)}${locComplete?' ✓':''}</span>
+        <span class="progress-pill">${doneInLoc}/${items.length}</span>
+        <span class="chevron${col?'':' open'}">⌄</span>
+      </div>`;
+
+    if(!col){
+      h+=`<div class="item-list">`;
+      items.forEach(item=>{
+        const needed=neededToPack(item);
+        const packed=packedCount(item);
+        const totalNeeded=qty(item);
+        const atCar=caravanCount(item);
+        const nt=ntCount(item);
+        const pdStr=item.perDay>0?` (min ${item.min}+${item.perDay}/wk)`:'';
+        const allAtCaravan=needed<=0;
+        const allPacked=!allAtCaravan&&packed>=needed&&needed>0;
+        const complete=allAtCaravan||allPacked;
+
+        // Show section it belongs to as a small badge
+        const sec=getSections().find(s=>s.id===item.section);
+        const secLabel=sec?getLabel(sec):'';
+
+        h+=`<div class="item-card${complete?' complete':''}${nt>0&&!complete?' nt-active':''}">
+          <div class="item-card-row1">
+            <div class="item-card-name${complete?' complete':''}">${esc(item.name)}${complete?' ✓':''}</div>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+              ${secLabel?`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(0,255,255,0.08);color:#00ffff66;border:1px solid rgba(0,255,255,0.1)">${esc(secLabel)}</span>`:''}
+              <div class="item-card-total">Total: <span>${totalNeeded}</span>${pdStr}</div>
+            </div>
+          </div>
+          ${state.notes[item.id]?`<div class="item-note">📝 ${esc(state.notes[item.id])}</div>`:''}
+          <div class="nt-row">
+            <span class="nt-label">🚫 Not this trip</span>
+            <div class="nt-controls">
+              <button class="nt-btn" onclick="adjustNTCount('${item.id}',-1)">−</button>
+              <span class="nt-val${nt>0?' active':''}">${nt}</span>
+              <button class="nt-btn" onclick="adjustNTCount('${item.id}',1)">+</button>
+            </div>
+          </div>
+          <div class="item-card-row2">
+            <div class="item-card-col">
+              <div class="item-card-label">🏕 At Caravan</div>
+              <div class="item-mini-controls">
+                <button class="mini-btn minus" onclick="adjustCaravanCount('${item.id}',-1)">−</button>
+                <span class="mini-val${allAtCaravan?' complete':''}">${atCar}</span>
+                <button class="mini-btn plus" onclick="adjustCaravanCount('${item.id}',1)">+</button>
+              </div>
+            </div>
+            <div class="item-card-divider"></div>
+            <div class="item-card-col">
+              <div class="item-card-label">🏠 At Mags</div>
+              <div class="item-mini-controls">
+                <button class="mini-btn minus" onclick="adjustMagsCount('${item.id}',-1)">−</button>
+                <span class="mini-val mags${magsCount(item)>0?' active':''}">${magsCount(item)}</span>
+                <button class="mini-btn plus" onclick="adjustMagsCount('${item.id}',1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="item-card-row2" style="border-top:1px solid rgba(0,255,255,0.06)">
+            <div class="item-card-col">
+              <div class="item-card-label">📦 To Pack</div>
+              <div class="item-to-pack${allAtCaravan||(needed-packed)<=0?' all-done':''}">${Math.max(0,needed-packed)}</div>
+            </div>
+            <div class="item-card-divider"></div>
+            <div class="item-card-col">
+              <div class="item-card-label">✓ Packed</div>
+              <div class="item-mini-controls">
+                <button class="mini-btn minus" onclick="adjustCount('${item.id}',-1)">−</button>
+                <span class="mini-val${allPacked?' complete':''}">${packed}</span>
+                <button class="mini-btn plus" onclick="adjustCount('${item.id}',1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      });
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  });
+
+  return h;
+}
+
+function buildShopping(){
+  const done=state.shopping.filter(i=>i.done).length;
+  let h=`<div class="section-card" style="margin-bottom:10px">
+    <div style="padding:12px 14px;border-bottom:1px solid rgba(0,255,255,0.1)">
+      <div style="font-size:13px;color:#00ffff88;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">🛒 Add item</div>
+      <div class="add-row" style="margin-bottom:8px">
+        <input class="add-field" type="text" placeholder="Item to buy" id="shop-name" style="margin-bottom:0">
+        <input class="add-field" type="text" placeholder="Qty / notes" id="shop-qty" style="margin-bottom:0">
+      </div>
+      <button class="add-btn" onclick="addShopItem()">+ Add to shopping list</button>
+    </div>`;
+  if(state.shopping.length){
+    h+=`<div class="item-list">`;
+    state.shopping.forEach(item=>{
+      h+=`<div class="shop-item-row">
+        <input type="checkbox" ${item.done?'checked':''} onchange="toggleShopItem('${item.id}')">
+        <span class="shop-name${item.done?' done':''}">${esc(item.name)}${item.qty?` <span class="shop-qty">(${esc(item.qty)})</span>`:''}</span>
+        <button class="del-btn" onclick="deleteShopItem('${item.id}')">✕</button>
+      </div>`;
+    });
+    h+=`</div>`;
+    if(done>0) h+=`<div style="padding:8px 14px"><button class="ctrl-btn" onclick="clearDoneShop()">Clear ${done} done item${done>1?'s':''}</button></div>`;
+  } else {
+    h+=`<div style="text-align:center;padding:30px;font-size:14px;color:#00ffff44">Shopping list is empty</div>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+
+function moveSection(id, dir){
+  const order=state.sectionOrder;
+  const idx=order.indexOf(id);
+  if(idx===-1)return;
+  const newIdx=idx+dir;
+  if(newIdx<0||newIdx>=order.length)return;
+  const tmp=order[idx];
+  order[idx]=order[newIdx];
+  order[newIdx]=tmp;
+  scheduleSave();renderContent();
+}
+
+function moveItem(id, dir){
+  const item=state.items.find(i=>i.id===id);
+  if(!item)return;
+  const secItems=state.items.filter(i=>i.section===item.section);
+  const secIdx=secItems.findIndex(i=>i.id===id);
+  const newSecIdx=secIdx+dir;
+  if(newSecIdx<0||newSecIdx>=secItems.length)return;
+  const swapItem=secItems[newSecIdx];
+  const aIdx=state.items.indexOf(item);
+  const bIdx=state.items.indexOf(swapItem);
+  state.items[aIdx]=swapItem;
+  state.items[bIdx]=item;
+  scheduleSave();renderContent();
+  // Re-focus after render to keep scroll position
+}
+
+function startSecEdit(id){
+  editingSection=(editingSection===id)?null:id;
+  editingId=null;
+  renderContent();
+}
+
+function saveSecName(id){
+  const inp=document.getElementById('sec-name-input');
+  if(inp&&inp.value.trim()){
+    state.sectionNames[id]=inp.value.trim();
+    scheduleSave();
+  }
+  editingSection=null;
+  renderContent();
+}
+
+function resetSecName(id){
+  delete state.sectionNames[id];
+  scheduleSave();
+  editingSection=null;
+  renderContent();
+}
+
+function buildTodo(){
+  // Flat list of items still needing packing, grouped by section
+  const remaining=state.items.filter(i=>!isCheck(i)&&!isAtCaravan(i)&&Math.max(0,neededToPack(i)-packedCount(i))>0&&matchSearch(i));
+  let h=searchBar('Search remaining items...');
+  if(!remaining.length){
+    return h+(searchTerm?`<div class="search-empty">No items matching "${esc(searchTerm)}"</div>`:`<div style="text-align:center;padding:60px 20px">
+      <div style="font-size:48px;margin-bottom:16px">🎉</div>
+      <div style="font-family:'Orbitron',monospace;font-size:18px;color:#00ffc8;text-shadow:0 0 10px rgba(0,255,200,0.6);margin-bottom:8px">All packed!</div>
+      <div style="font-size:14px;color:#00ffff66">Nothing left to pack — have a great holiday!</div>
+    </div>`);
+  }
+  const total=remaining.length;
+  h+=`<div class="ctrl-bar"><button class="ctrl-btn" onclick="collapseAll()">⊟ Collapse all</button><button class="ctrl-btn" onclick="expandAll()">⊞ Expand all</button></div>`;
+  h+=`<div class="stats-bar" style="grid-template-columns:1fr 1fr;margin-bottom:12px">
+    <div class="stat"><div class="stat-val">${total}</div><div class="stat-lbl">items left</div></div>
+    <div class="stat"><div class="stat-val">${remaining.reduce((s,i)=>s+Math.max(0,neededToPack(i)-packedCount(i)),0)}</div><div class="stat-lbl">units to pack</div></div>
+  </div>`;
+  getSections().forEach(sec=>{
+    const items=remaining.filter(i=>i.section===sec.id);
+    if(!items.length)return;
+    const col=state.collapsed['td_'+sec.id];
+    h+=`<div class="section-card"><div class="section-head" onclick="tc('td_${sec.id}')">
+      <div class="avatar ${sec.cls}">${sec.av}</div>
+      <span class="section-title">${getLabel(sec)}</span>
+      <span class="progress-pill">${items.length} left</span>
+      <span class="chevron${col?'':' open'}">⌄</span>
+    </div>`;
+    if(!col){
+      h+=`<div class="item-list">`;
+      items.forEach(item=>{
+        const needed=neededToPack(item);
+        const packed=packedCount(item);
+        const remaining=Math.max(0,needed-packed);
+        const totalNeeded=qty(item);
+        const pdStr=item.perDay>0?` (min ${item.min}+${item.perDay}/wk)`:'';
+        h+=`<div class="counter-row">
+          <div class="counter-info">
+            <div class="counter-name">${esc(item.name)}</div>
+            <div class="counter-meta">Need ${needed} of ${totalNeeded}${pdStr}${item.location?' · '+esc(item.location):''}</div>
+          </div>
+          <div>
+            <div class="counter-controls">
+              <button class="counter-btn minus" onclick="adjustCount('${item.id}',-1)">−</button>
+              <div class="counter-val">${packed}/${needed}</div>
+              <button class="counter-btn plus" onclick="adjustCount('${item.id}',1)">+</button>
+            </div>
+          </div>
+        </div>`;
+      });
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  });
+  return h;
+}
+
+function buildMagsView(){
+  const magsItems=state.items.filter(i=>!isCheck(i)&&!isAtCaravan(i)&&isAutoMags(i)&&matchSearch(i));
+  let h=searchBar('Search Mags items...')+`<div class="stat" style="margin-bottom:12px;background:rgba(180,100,255,0.08);border-color:rgba(180,100,255,0.3)">
+    <div class="stat-val" style="color:#cc66ff;text-shadow:0 0 10px rgba(200,100,255,0.6)">${magsItems.length}</div>
+    <div class="stat-lbl" style="color:#cc66ff99">items at Mags</div>
+  </div>`;
+  if(!magsItems.length){
+    h+=searchTerm?`<div class="search-empty">No Mags items matching "${esc(searchTerm)}"</div>`:`<div style="text-align:center;padding:40px;font-size:14px;color:#aaa">Nothing marked as at Mags yet.<br><br>Use the 🏠 At Mags counter on each item.</div>`;
+    return h;
+  }
+  getSections().filter(s=>s.type==='pack').forEach(sec=>{
+    const items=magsItems.filter(i=>i.section===sec.id);
+    if(!items.length)return;
+    const col=state.collapsed['mg_'+sec.id];
+    h+=`<div class="section-card" style="border-color:rgba(180,100,255,0.2)"><div class="section-head" onclick="tc('mg_${sec.id}')">
+      <div class="avatar ${sec.cls}">${sec.av}</div>
+      <span class="section-title">${getLabel(sec)}</span>
+      <span class="progress-pill">${items.length}</span>
+      <span class="chevron${col?'':' open'}">⌄</span>
+    </div>`;
+    if(!col){
+      h+=`<div class="item-list">`;
+      items.forEach(item=>{
+        const mc=magsCount(item);
+        const totalQ=qty(item);
+        h+=`<div class="counter-row">
+          <div class="counter-info">
+            <div class="counter-name">${esc(item.name)}</div>
+            <div class="counter-meta">${mc} of ${totalQ} at Mags${item.location?' · '+esc(item.location):''}</div>
+          </div>
+          <div>
+            <div class="counter-controls" style="border-color:rgba(180,100,255,0.3)">
+              <button class="counter-btn minus" onclick="adjustMagsCount('${item.id}',-1)">−</button>
+              <div class="counter-val" style="color:#cc66ff">${mc}/${totalQ}</div>
+              <button class="counter-btn plus" onclick="adjustMagsCount('${item.id}',1)">+</button>
+            </div>
+          </div>
+        </div>`;
+      });
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  });
+  return h;
+}
+
+function buildCaravanView(){
+  const atCaravanItems=state.items.filter(i=>!isCheck(i)&&isAtCaravan(i));
+  let h=`<div class="stat" style="margin-bottom:12px;background:#E0F2FE;border-color:#BAE6FD">
+    <div class="stat-val" style="color:#0C4A6E">${atCaravanItems.length}</div>
+    <div class="stat-lbl" style="color:#0369A1">items at caravan</div>
+  </div>`;
+  if(!atCaravanItems.length){
+    h+=`<div style="text-align:center;padding:40px;font-size:14px;color:#aaa">No items marked as at caravan yet.<br><br>Use the toggles in Manage Items to mark what's there.</div>`;
+    return h;
+  }
+  getSections().filter(s=>s.type==='pack').forEach(sec=>{
+    const items=magsItems.filter(i=>i.section===sec.id);
+    if(!items.length)return;
+    const col=state.collapsed['cv_'+sec.id];
+    h+=`<div class="section-card"><div class="section-head" onclick="tc('cv_${sec.id}')">
+      <div class="avatar ${sec.cls}">${sec.av}</div>
+      <span class="section-title">${getLabel(sec)}</span>
+      <span class="progress-pill">${items.length}</span>
+      <span class="chevron${col?'':' open'}">⌄</span>
+    </div>`;
+    if(!col){
+      h+=`<div class="item-list">`;
+      items.forEach(item=>{
+        const cCount=caravanCount(item);
+        const totalQ=qty(item);
+        h+=`<div class="counter-row">
+          <div class="counter-info">
+            <div class="counter-name">${esc(item.name)}</div>
+            <div class="counter-meta">${cCount>0?cCount+' of '+totalQ+' here':totalQ+' needed total'}${item.location?' · '+esc(item.location):''}</div>
+          </div>
+          <div>
+            <div class="counter-controls">
+              <button class="counter-btn minus" onclick="adjustCaravanCount('${item.id}',-1)">−</button>
+              <div class="counter-val${cCount>=totalQ?' complete':''}">${cCount}/${totalQ}</div>
+              <button class="counter-btn plus" onclick="adjustCaravanCount('${item.id}',1)">+</button>
+            </div>
+          </div>
+        </div>`;
+      });
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  });
+  return h;
+}
+
+function buildSetup(){
+  let h=searchBar('Search items to manage...');
+  // Top-level add item panel
+  h+=`<div class="add-section-card" style="border-color:rgba(0,255,200,0.3)">
+    <div class="add-section-title" style="color:#00ffc899">➕ Add item</div>
+    <select class="add-field" id="global-sec-select" style="margin-bottom:8px">
+      ${getSections().map(s=>`<option value="${s.id}">${getLabel(s)}</option>`).join('')}
+    </select>
+    <div class="add-row" style="margin-bottom:8px">
+      <input class="add-field" type="text" placeholder="Item name" id="global-item-name" style="margin-bottom:0">
+    </div>
+    ${locationSelect('','global-item-loc')}
+    <div class="add-row3" style="margin-top:8px;margin-bottom:8px">
+      <input class="add-field" type="number" placeholder="Min" min="0" id="global-item-min" value="1" style="margin-bottom:0">
+      <input class="add-field" type="number" placeholder="Per week" min="0" step="0.5" id="global-item-pd" value="0" style="margin-bottom:0">
+      <input class="add-field" type="text" placeholder="Unit" id="global-item-unit" style="margin-bottom:0">
+    </div>
+    <button class="add-btn" onclick="aiGlobal()">+ Add item</button>
+  </div>`;
+
+  getSections().forEach(sec=>{
+    const items=state.items.filter(i=>i.section===sec.id&&matchSearch(i));
+    const allItems=state.items.filter(i=>i.section===sec.id);
+    const col=state.collapsed['s_'+sec.id];
+    const check=sec.type==='check';
+    const isEditingSec=editingSection===sec.id;
+    const secOrder=state.sectionOrder;
+    const secOrderIdx=secOrder.indexOf(sec.id);
+    h+=`<div class="section-card"><div class="section-head" style="cursor:default">
+      <div class="reorder-btns">
+        <button class="reorder-btn" onclick="moveSection('${sec.id}',-1)" ${secOrderIdx===0?'disabled':''}>↑</button>
+        <button class="reorder-btn" onclick="moveSection('${sec.id}',1)" ${secOrderIdx===secOrder.length-1?'disabled':''}>↓</button>
+      </div>
+      <div class="avatar ${sec.cls}">${sec.av}</div>
+      ${isEditingSec?
+        `<input class="sec-rename-input" id="sec-name-input" value="${esc(getLabel(sec))}" onkeydown="if(event.key==='Enter')saveSecName('${sec.id}')">
+         <button class="sec-rename-save" onclick="saveSecName('${sec.id}')">✓</button>
+         <button class="sec-rename-cancel" onclick="startSecEdit(null)">✕</button>
+         ${state.sectionNames[sec.id]?`<button class="sec-rename-cancel" onclick="resetSecName('${sec.id}')">↩</button>`:''}`
+        :`<span class="section-title" onclick="tc('s_${sec.id}')" style="cursor:pointer">${getLabel(sec)}</span>
+         <span class="progress-pill" onclick="tc('s_${sec.id}')" style="cursor:pointer">${allItems.length} items${searchTerm&&items.length!==allItems.length?' ('+items.length+' match)':''}</span>
+         <button class="sec-edit-btn" onclick="startSecEdit('${sec.id}')">✎</button>
+         ${sec.id.startsWith('cs_')?`<button class="del-sec-btn" onclick="deleteSection('${sec.id}')">✕</button>`:''}
+         <span class="chevron${col?'':' open'}" onclick="tc('s_${sec.id}')" style="cursor:pointer">⌄</span>`
+      }
+    </div>`;
+    if(!col){
+      items.forEach(item=>{
+        const atCar=isAtCaravan(item);
+        const isEditing=editingId===item.id;
+        const secItems=state.items.filter(i=>i.section===sec.id);
+        const itemSecIdx=secItems.findIndex(i=>i.id===item.id);
+        h+=`<div class="setup-row">
+          <div class="reorder-btns">
+            <button class="reorder-btn" onclick="moveItem('${item.id}',-1)" ${itemSecIdx===0?'disabled':''}>↑</button>
+            <button class="reorder-btn" onclick="moveItem('${item.id}',1)" ${itemSecIdx===secItems.length-1?'disabled':''}>↓</button>
+          </div>
+          <div class="setup-info">
+            <div class="setup-name">${esc(item.name)}</div>
+            <div class="setup-meta">${check?'Checklist task':`Min: ${item.min} · Per week: ${item.perDay}`}${item.location?' · '+esc(item.location):''}</div>
+          </div>`;
+        if(!check){
+          h+=`<div class="toggle-wrap" onclick="toggleCaravan('${item.id}')">
+            <div class="toggle">
+              <div class="toggle-track ${atCar?'caravan':'pack'}">
+                <span>PACK</span><span>VAN</span>
+              </div>
+              <div class="toggle-knob ${atCar?'caravan':'pack'}"></div>
+            </div>
+          </div>`;
+        }
+        h+=`<button class="edit-btn" onclick="startEdit('${item.id}')">${isEditing?'✕':'✎'}</button>
+          <button class="del-btn" onclick="di('${item.id}')">✕</button>
+        </div>`;
+        if(isEditing){
+          h+=`<div class="edit-panel">
+            <select class="section-move-select" id="e-sec">
+              ${getSections().map(s=>`<option value="${s.id}" ${item.section===s.id?"selected":""}>${getLabel(s)}</option>`).join("")}
+            </select>
+            <div class="add-row" style="margin-bottom:8px">
+              <input class="add-field" type="text" placeholder="Item name" id="e-name" value="${esc(item.name)}" style="margin-bottom:0">
+            </div>
+            ${locationSelect(item.location,'e-loc')}
+            ${!check?`<div class="add-row3">
+              <input class="add-field" type="number" placeholder="Min qty" id="e-min" value="${item.min}" min="0" style="margin-bottom:0">
+              <input class="add-field" type="number" placeholder="Per week" id="e-pd" value="${item.perDay}" min="0" step="0.5" style="margin-bottom:0">
+              <input class="add-field" type="text" placeholder="Unit" id="e-unit" style="margin-bottom:0">
+            </div>`:''}
+            <textarea class="notes-field" id="note-${item.id}" placeholder="Notes (optional)..." onblur="saveNote('${item.id}')">${esc(state.notes[item.id]||'')}</textarea>
+            <div class="edit-actions">
+              <button class="save-btn" onclick="saveNote('${item.id}');saveEdit('${item.id}')">Save</button>
+              <button class="cancel-btn" onclick="startEdit(null)">Cancel</button>
+            </div>
+          </div>`;
+        }
+      });
+      h+=`<div class="add-area">
+        <input class="add-field" type="text" placeholder="Item name" id="n-${sec.id}" style="margin-bottom:8px">
+        ${locationSelect('','l-'+sec.id)}
+        ${!check?`<div class="add-row3" style="margin-top:8px">
+          <input class="add-field" type="number" placeholder="Min" min="0" id="m-${sec.id}" value="1" style="margin-bottom:0">
+          <input class="add-field" type="number" placeholder="Per week" min="0" step="0.5" id="p-${sec.id}" value="0" style="margin-bottom:0">
+          <input class="add-field" type="text" placeholder="Unit" id="u-${sec.id}" style="margin-bottom:0">
+        </div>`:''}
+        <button class="add-btn" onclick="ai('${sec.id}')" style="margin-top:8px">+ Add to ${sec.label}</button>
+      </div>`;
+    }
+    h+=`</div>`;
+  });
+  return h;
+}
+
+function adjustCount(id, delta){
+  const item=state.items.find(i=>i.id===id);
+  if(!item)return;
+  const needed=neededToPack(item);
+  const current=packedCount(item);
+  const next=Math.max(0,Math.min(needed,current+delta));
+  if(next===0) delete state.counts[id];
+  else state.counts[id]=next;
+  scheduleSave();
+  renderContent();
+}
+
+function adjustCaravanCount(id,delta){
+  const item=state.items.find(i=>i.id===id);
+  if(!item)return;
+  const total=qty(item);
+  const current=caravanCount(item);
+  const next=Math.max(0,Math.min(total,current+delta));
+  if(next===0)delete state.caravanCounts[id];
+  else state.caravanCounts[id]=next;
+  // Reset pack count if it now exceeds neededToPack
+  const needed=Math.max(0,total-next);
+  if((state.counts[id]||0)>needed) delete state.counts[id];
+  scheduleSave();renderContent();
+}
+
+function adjustMagsCount(id,delta){
+  const item=state.items.find(i=>i.id===id);
+  if(!item)return;
+  const maxM=Math.max(0,qty(item)-caravanCount(item)-ntCount(item));
+  const current=magsCount(item);
+  const next=Math.max(0,Math.min(qty(item),current+delta));
+  if(next===0)delete state.magsCount[id];
+  else state.magsCount[id]=next;
+  const needed=neededToPack(item);
+  if((state.counts[id]||0)>needed)delete state.counts[id];
+  scheduleSave();renderContent();
+}
+
+function adjustNTCount(id,delta){
+  const item=state.items.find(i=>i.id===id);
+  if(!item)return;
+  const maxNT=Math.max(0,qty(item)-caravanCount(item));
+  const current=ntCount(item);
+  const next=Math.max(0,Math.min(maxNT,current+delta));
+  if(next===0)delete state.ntCounts[id];
+  else state.ntCounts[id]=next;
+  // Reset pack count if it now exceeds neededToPack
+  const needed=Math.max(0,qty(item)-caravanCount(item)-next);
+  if((state.counts[id]||0)>needed)delete state.counts[id];
+  scheduleSave();renderContent();
+}
+
+function toggleCaravan(id){
+  if(state.atCaravan[id])delete state.atCaravan[id];
+  else state.atCaravan[id]=true;
+  scheduleSave();renderContent();
+}
+
+function tc(id){state.collapsed[id]=!state.collapsed[id];renderContent();}
+function tk(id,v){if(v)state.checked[id]=true;else delete state.checked[id];scheduleSave();renderContent();}
+function startEdit(id){editingId=(editingId===id)?null:id;renderContent();}
+
+function saveEdit(id){
+  const item=state.items.find(i=>i.id===id);
+  if(!item)return;
+  const n=document.getElementById('e-name');
+  const l=document.getElementById('e-loc');
+  const m=document.getElementById('e-min');
+  const p=document.getElementById('e-pd');
+  const s=document.getElementById('e-sec');
+  if(n)item.name=n.value.trim()||item.name;
+  item.location=getLocVal('e-loc');
+  if(m)item.min=Math.max(0,parseFloat(m.value)||0);
+  if(p)item.perDay=Math.max(0,parseFloat(p.value)||0);
+  if(s)item.section=s.value;
+  editingId=null;
+  scheduleSave();renderContent();
+}
+
+function ai(sid){
+  const nEl=document.getElementById('n-'+sid);
+  if(!nEl||!nEl.value.trim())return;
+  const check=secType(sid)==='check';
+  const min=check?1:Math.max(0,parseFloat((document.getElementById('m-'+sid)||{}).value)||0);
+  const pd=check?0:Math.max(0,parseFloat((document.getElementById('p-'+sid)||{}).value)||0);
+  const loc=getLocVal('l-'+sid);
+  state.items.push({id:'i'+Date.now()+Math.random().toString(36).slice(2),section:sid,name:nEl.value.trim(),location:loc.trim(),min:Math.round(min),perDay:pd});
+  scheduleSave();renderContent();
+}
+
+function di(id){
+  if(!confirm('Remove this item?'))return;
+  state.items=state.items.filter(i=>i.id!==id);
+  delete state.checked[id];
+  delete state.counts[id];
+  delete state.atCaravan[id];
+  delete state.caravanCounts[id];
+  delete state.ntCounts[id];
+  delete state.magsCount[id];
+  scheduleSave();renderContent();
+}
+
+function resetAll(){
+  if(!confirm('Clear all counts and checks for a fresh holiday?\n\nItems marked as "At Caravan" will stay as they are.'))return;
+  state.checked={};
+  state.counts={};
+  state.ntCounts={};
+  state.celebrationSeen=false;
+  scheduleSave();renderContent();
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+
+const CORRECT_PIN = '1008';
+let pinEntry = '';
+let pinUnlocked = sessionStorage.getItem('hpk_unlocked') === 'true';
+
+function pinPress(d) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += d;
+  updatePinDots();
+  if (pinEntry.length === 4) {
+    setTimeout(checkPin, 150);
+  }
+}
+
+function pinDel() {
+  pinEntry = pinEntry.slice(0, -1);
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('pd' + i);
+    dot.classList.remove('filled', 'error');
+    if (i < pinEntry.length) dot.classList.add('filled');
+  }
+}
+
+function checkPin() {
+  if (pinEntry === CORRECT_PIN) {
+    sessionStorage.setItem('hpk_unlocked', 'true');
+    document.getElementById('pin-screen').style.display = 'none';
+    init();
+  } else {
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('pd' + i);
+      dot.classList.remove('filled');
+      dot.classList.add('error');
+    }
+    document.getElementById('pin-error').textContent = 'Incorrect PIN — try again';
+    setTimeout(() => {
+      pinEntry = '';
+      updatePinDots();
+      document.getElementById('pin-error').textContent = '';
+    }, 1000);
+  }
+}
+
+if (pinUnlocked) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('pin-screen').style.display = 'none';
+    init();
+  });
+} else {
+  document.addEventListener('DOMContentLoaded', () => {});
+}
+
+</script>
+</body>
+</html>
